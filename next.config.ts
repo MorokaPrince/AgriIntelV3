@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
   // Optimize images
   images: {
     domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'vercel-storage.com',
+      }
+    ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -102,22 +112,10 @@ const nextConfig: NextConfig = {
     } : false,
   },
 
-  // Experimental features for better performance
+  // Experimental features for better performance (compatible with Vercel)
   experimental: {
     optimizeCss: true,
-    scrollRestoration: true,
   },
-
-  // API configuration
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-    responseLimit: '10mb',
-  },
-
-  // Output configuration for static export if needed
-  output: 'standalone',
 
   // Environment variables validation
   env: {
