@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ShieldCheckIcon,
@@ -34,11 +34,7 @@ export default function VaccinationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'overdue' | 'upcoming'>('all');
 
-  useEffect(() => {
-    fetchVaccinations();
-  }, [filter]);
-
-  const fetchVaccinations = async () => {
+  const fetchVaccinations = useCallback(async () => {
     try {
       setLoading(true);
       // For now, using mock data until we implement vaccinations API
@@ -104,7 +100,11 @@ export default function VaccinationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchVaccinations();
+  }, [fetchVaccinations]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

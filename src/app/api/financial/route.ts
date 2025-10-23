@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '10');
+        const limit = parseInt(searchParams.get('limit') || '48');
         const type = searchParams.get('type'); // income or expense
         const category = searchParams.get('category');
         const startDate = searchParams.get('startDate');

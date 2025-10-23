@@ -115,7 +115,25 @@ const nextConfig: NextConfig = {
   // Experimental features for better performance (compatible with Vercel)
   experimental: {
     optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@headlessui/react'],
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
+
+  // Performance optimizations
+  swcMinify: true,
+
+  // Output configuration for better performance
+  output: 'standalone',
+
+  // Asset optimization
+  assetPrefix: process.env.NODE_ENV === 'production' ? 'https://your-app.vercel.app' : undefined,
 
   // Environment variables validation
   env: {

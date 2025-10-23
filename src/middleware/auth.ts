@@ -56,16 +56,33 @@ export function hasRoleHierarchy(userRole: string, requiredRole: UserRole): bool
 }
 
 export async function requireAuth(request: NextRequest): Promise<Session | NextResponse> {
-  const session = await getServerSession(authOptions);
+   try {
+     const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
-    );
-  }
+     if (!session) {
+       return NextResponse.json(
+         { error: 'Authentication required' },
+         { status: 401 }
+       );
+     }
 
-  return session;
+     // Ensure session has required properties
+     if (!session.user || !session.user.id) {
+       console.error('Invalid session structure:', session);
+       return NextResponse.json(
+         { error: 'Invalid session' },
+         { status: 401 }
+       );
+     }
+
+     return session;
+   } catch (error) {
+     console.error('Auth error in requireAuth:', error);
+     return NextResponse.json(
+       { error: 'Authentication service error' },
+       { status: 500 }
+     );
+   }
 }
 
 export async function requirePermission(request: NextRequest, permission: Permission): Promise<Session | NextResponse> {

@@ -49,11 +49,17 @@ const BreedingRecordSchema = new Schema<IBreedingRecord>(
     },
     startDate: {
       type: Date,
-      required: true,
+      required: [true, 'Start date is required'],
     },
     endDate: {
       type: Date,
-      required: true,
+      required: [true, 'End date is required'],
+      validate: {
+        validator: function(value: Date) {
+          return value >= this.startDate;
+        },
+        message: 'End date must be after or equal to start date',
+      },
     },
     status: {
       type: String,
@@ -130,9 +136,15 @@ BreedingRecordSchema.index({ tenantId: 1, status: 1 });
 BreedingRecordSchema.index({ tenantId: 1, startDate: -1 });
 BreedingRecordSchema.index({ tenantId: 1, endDate: -1 });
 
+// Compound indexes for common query patterns
+BreedingRecordSchema.index({ tenantId: 1, status: 1, species: 1 }); // Filter by status and species
+BreedingRecordSchema.index({ tenantId: 1, startDate: -1, endDate: -1 }); // Date range queries
+BreedingRecordSchema.index({ tenantId: 1, status: 1, startDate: -1 }); // Active programs by start date
+
 // Virtual for program duration in days
 BreedingRecordSchema.virtual('durationDays').get(function () {
-  const diffTime = Math.abs(this.endDate - this.startDate);
+  if (!this.startDate || !this.endDate) return 0;
+  const diffTime = Math.abs(this.endDate.getTime() - this.startDate.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 });
 

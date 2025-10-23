@@ -122,6 +122,8 @@ export default function AnimalsPage() {
         status: 'active',
         createdBy: user?._id || '507f1f77bcf86cd799439011',
         updatedBy: user?._id || '507f1f77bcf86cd799439011',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         location: {
           latitude: -26.2041,
           longitude: 28.0473,

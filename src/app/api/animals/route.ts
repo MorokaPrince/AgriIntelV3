@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Session } from 'next-auth';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose'; // Not currently used
 import { withAuth } from '../../../middleware/auth';
 import connectDB from '../../../lib/mongodb';
 import Animal from '../../../models/Animal';
+import {
+  validateWithSchema,
+  CreateAnimalSchema,
+  validatePagination,
+  sanitizeString,
+  sanitizeSearchTerm,
+  checkRateLimit
+} from '../../../utils/validation';
+import { ZodIssue } from 'zod';
 
 // GET /api/animals - Get all animals for the authenticated user's tenant
 export async function GET(request: NextRequest) {
@@ -12,35 +21,83 @@ export async function GET(request: NextRequest) {
     async (_request: NextRequest, session: Session | null) => {
       // For demo purposes, use default tenant if no session
       const tenantId = session?.user?.tenantId || 'demo-farm';
+      const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+
       try {
+        // Check rate limiting
+        const rateLimit = checkRateLimit(`animals:get:${clientIP}`, 1000, 60 * 60 * 1000); // 1000 requests per hour
+        if (!rateLimit.allowed) {
+          return NextResponse.json(
+            {
+              error: 'Rate limit exceeded',
+              resetTime: rateLimit.resetTime,
+              retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000)
+            },
+            { status: 429 }
+          );
+        }
+
         // Connect to database once per request
         await connectDB();
 
         const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '10');
+
+        // Validate and sanitize pagination parameters
+        const pageParam = searchParams.get('page');
+        const limitParam = searchParams.get('limit');
+
+        const page = pageParam ? Math.max(1, parseInt(pageParam)) : 1;
+        const limit = limitParam ? Math.min(1000, Math.max(1, parseInt(limitParam))) : 48;
         const species = searchParams.get('species');
         const status = searchParams.get('status');
         const search = searchParams.get('search');
 
+        // Validate and sanitize filter parameters
+        const validSpecies = ['cattle', 'sheep', 'goats', 'poultry', 'pigs', 'other'];
+        const validStatuses = ['active', 'sold', 'deceased', 'quarantined', 'breeding'];
+
+        if (species && !validSpecies.includes(species)) {
+          return NextResponse.json(
+            { error: 'Invalid species parameter' },
+            { status: 400 }
+          );
+        }
+
+        if (status && !validStatuses.includes(status)) {
+          return NextResponse.json(
+            { error: 'Invalid status parameter' },
+            { status: 400 }
+          );
+        }
+
+        const sanitizedSearch = search ? sanitizeSearchTerm(search) : null;
+
         const skip = (page - 1) * limit;
+
+        // Validate pagination parameters are reasonable
+        if (page < 1 || page > 1000 || limit < 1 || limit > 1000) {
+          return NextResponse.json(
+            { error: 'Invalid pagination parameters' },
+            { status: 400 }
+          );
+        }
 
         // Build filter - use demo tenant for demo purposes
         const filter: Record<string, unknown> = { tenantId };
 
         if (species) {
-          filter.species = species;
+          filter.species = sanitizeString(species);
         }
 
         if (status) {
-          filter.status = status;
+          filter.status = sanitizeString(status);
         }
 
-        if (search) {
+        if (sanitizedSearch) {
           filter.$or = [
-            { name: { $regex: search, $options: 'i' } },
-            { rfidTag: { $regex: search, $options: 'i' } },
-            { breed: { $regex: search, $options: 'i' } },
+            { name: { $regex: sanitizedSearch, $options: 'i' } },
+            { rfidTag: { $regex: sanitizedSearch, $options: 'i' } },
+            { breed: { $regex: sanitizedSearch, $options: 'i' } },
           ];
         }
 
@@ -85,28 +142,50 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         );
       }
+
+      const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
+
+      // Check rate limiting for POST requests (more restrictive)
+      const rateLimit = checkRateLimit(`animals:post:${clientIP}`, 20, 60 * 60 * 1000); // 20 requests per hour
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Rate limit exceeded for create operations',
+            resetTime: rateLimit.resetTime,
+            retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000)
+          },
+          { status: 429 }
+        );
+      }
+
       try {
         await connectDB();
 
         const body = await request.json();
 
-        // Validate required fields
-        const requiredFields = ['species', 'breed', 'dateOfBirth', 'gender', 'color', 'weight', 'location'];
-        for (const field of requiredFields) {
-          if (!body[field]) {
-            return NextResponse.json(
-              { error: `${field} is required` },
-              { status: 400 }
-            );
-          }
+        // Validate request body using Zod schema
+        const validation = validateWithSchema(CreateAnimalSchema, body);
+        if (!validation.success) {
+          return NextResponse.json(
+            {
+              error: 'Validation failed',
+              details: validation.errors.issues.map((issue: ZodIssue) => ({
+                field: issue.path.join('.'),
+                message: issue.message
+              }))
+            },
+            { status: 400 }
+          );
         }
+
+        const animalData = validation.data;
 
         // Create new animal - use demo user for demo purposes
         const userId = session?.user?.id || 'demo-user';
         const tenantId = session?.user?.tenantId || 'demo-farm';
 
-        const animalData = {
-          ...body,
+        const finalAnimalData = {
+          ...animalData,
           tenantId,
           createdBy: userId,
           updatedBy: userId,
@@ -115,7 +194,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Create new animal using Mongoose model
-        const animal = new Animal(animalData);
+        const animal = new Animal(finalAnimalData);
         const savedAnimal = await animal.save();
 
         return NextResponse.json({

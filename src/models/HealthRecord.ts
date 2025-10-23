@@ -127,7 +127,15 @@ const HealthRecordSchema = new Schema<IHealthRecord>(
     }],
     followUp: {
       required: { type: Boolean, default: false },
-      date: { type: Date },
+      date: {
+        type: Date,
+        validate: {
+          validator: function(value: Date) {
+            return !value || value >= new Date();
+          },
+          message: 'Follow-up date cannot be in the past',
+        },
+      },
       instructions: { type: String },
     },
     cost: {
@@ -185,6 +193,12 @@ HealthRecordSchema.index({ tenantId: 1, date: -1 });
 HealthRecordSchema.index({ tenantId: 1, severity: 1 });
 HealthRecordSchema.index({ tenantId: 1, status: 1 });
 HealthRecordSchema.index({ tenantId: 1, veterinarian: 1 });
+
+// Compound indexes for common query patterns
+HealthRecordSchema.index({ tenantId: 1, animalId: 1, date: -1 }); // Animal health history
+HealthRecordSchema.index({ tenantId: 1, status: 1, severity: 1 }); // Critical issues by status
+HealthRecordSchema.index({ tenantId: 1, 'followUp.date': 1 }); // Follow-up reminders
+HealthRecordSchema.index({ tenantId: 1, recordType: 1, date: -1 }); // Records by type and date
 
 // Pre-save middleware to calculate total cost
 HealthRecordSchema.pre('save', function (next) {

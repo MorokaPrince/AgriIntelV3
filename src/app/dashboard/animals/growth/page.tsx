@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ChartBarIcon,
@@ -28,11 +28,7 @@ export default function GrowthTrackingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedAnimal, setSelectedAnimal] = useState('');
 
-  useEffect(() => {
-    fetchGrowthRecords();
-  }, [selectedAnimal]);
-
-  const fetchGrowthRecords = async () => {
+  const fetchGrowthRecords = useCallback(async () => {
     try {
       setLoading(true);
       // For now, using mock data until we implement growth tracking API
@@ -100,7 +96,11 @@ export default function GrowthTrackingPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedAnimal]);
+
+  useEffect(() => {
+    fetchGrowthRecords();
+  }, [fetchGrowthRecords]);
 
   const animals = [
     { id: 'animal1', name: 'Bella (Cattle)' },

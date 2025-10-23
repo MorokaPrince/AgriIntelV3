@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { apiService, Animal, HealthRecord, FinancialRecord, FeedRecord, TaskRecord } from '@/services/apiService';
 
 interface DataCache {
@@ -42,11 +42,30 @@ export function useRealTimeData<T = unknown>({
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchData = useCallback(async (showLoading = true) => {
-    if (!enabled) return;
+  // Use refs for values that shouldn't trigger re-renders
+  const enabledRef = useRef(enabled);
+  const refreshIntervalRef = useRef(refreshInterval);
+  const endpointRef = useRef(endpoint);
 
-    // Create cache key inside the function to avoid dependency issues
-    const currentCacheKey = `${endpoint}:${JSON.stringify(params)}`;
+  // Update refs when values change
+  enabledRef.current = enabled;
+  refreshIntervalRef.current = refreshInterval;
+  endpointRef.current = endpoint;
+
+  // Memoize params to prevent unnecessary re-renders
+  const memoizedParams = useMemo(() => params, [
+    // Only re-memoize if actual param values change, not object reference
+    ...(Object.keys(params) as (keyof typeof params)[]).map(key => params[key])
+  ]);
+
+  // Memoize cache key to prevent unnecessary cache misses
+  const cacheKey = useMemo(() =>
+    `${endpoint}:${JSON.stringify(memoizedParams)}`,
+    [endpoint, memoizedParams]
+  );
+
+  const fetchData = useCallback(async (showLoading = true) => {
+    if (!enabledRef.current) return;
 
     try {
       if (showLoading) {
@@ -55,7 +74,7 @@ export function useRealTimeData<T = unknown>({
       setError(null);
 
       // Check cache first
-      const cached = globalCache[currentCacheKey];
+      const cached = globalCache[cacheKey];
       if (cached && Date.now() < cached.expiresAt) {
         setData(cached.data as T);
         setLastUpdated(new Date(cached.timestamp));
@@ -65,37 +84,37 @@ export function useRealTimeData<T = unknown>({
 
       // Fetch fresh data based on endpoint
       let result;
-      switch (endpoint) {
+      switch (endpointRef.current) {
         case 'animals':
-          result = await apiService.getAnimals(params);
+          result = await apiService.getAnimals(memoizedParams);
           break;
         case 'health':
-          result = await apiService.getHealthRecords(params);
+          result = await apiService.getHealthRecords(memoizedParams);
           break;
         case 'financial':
-          result = await apiService.getFinancialRecords(params);
+          result = await apiService.getFinancialRecords(memoizedParams);
           break;
         case 'feeding':
-          result = await apiService.getFeedRecords(params);
+          result = await apiService.getFeedRecords(memoizedParams);
           break;
         case 'breeding':
-          result = await apiService.getBreedingRecords(params);
+          result = await apiService.getBreedingRecords(memoizedParams);
           break;
         case 'rfid':
-          result = await apiService.getRFIDRecords(params);
+          result = await apiService.getRFIDRecords(memoizedParams);
           break;
         case 'tasks':
-          result = await apiService.getTasks(params);
+          result = await apiService.getTasks(memoizedParams);
           break;
         default:
-          throw new Error(`Unknown endpoint: ${endpoint}`);
+          throw new Error(`Unknown endpoint: ${endpointRef.current}`);
       }
 
       if (result.success) {
         const fetchedData = result.data;
 
         // Update global cache
-        globalCache[currentCacheKey] = {
+        globalCache[cacheKey] = {
           data: fetchedData,
           timestamp: Date.now(),
           expiresAt: Date.now() + CACHE_DURATION,
@@ -109,13 +128,16 @@ export function useRealTimeData<T = unknown>({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
-      console.error(`Error fetching ${endpoint}:`, err);
+      console.error(`Error fetching ${endpointRef.current}:`, err);
     } finally {
       setLoading(false);
     }
-  }, [endpoint, params, enabled]);
+  }, [cacheKey]);
 
   const refetch = useCallback(() => fetchData(true), [fetchData]);
+
+  // Use refs for values that shouldn't trigger re-renders
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initial fetch and periodic refresh combined
   useEffect(() => {
@@ -123,14 +145,41 @@ export function useRealTimeData<T = unknown>({
     fetchData();
 
     // Set up periodic refresh
-    if (!enabled || refreshInterval <= 0) return;
+    if (!enabledRef.current || refreshIntervalRef.current <= 0) return;
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       fetchData(false); // Silent refresh
-    }, refreshInterval);
+    }, refreshIntervalRef.current);
 
-    return () => clearInterval(interval);
-  }, [endpoint, params, enabled, refreshInterval]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [fetchData]); // Only depend on fetchData, not on enabled/refreshInterval
+
+  // Separate effect to handle enabled/refreshInterval changes
+  useEffect(() => {
+    // If interval exists but shouldn't, clear it
+    if (intervalRef.current && (!enabled || refreshInterval <= 0)) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    // If no interval but should have one, create it
+    else if (!intervalRef.current && enabled && refreshInterval > 0) {
+      intervalRef.current = setInterval(() => {
+        fetchData(false); // Silent refresh
+      }, refreshInterval);
+    }
+    // If interval exists and settings changed, restart it
+    else if (intervalRef.current && enabled && refreshInterval > 0) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        fetchData(false); // Silent refresh
+      }, refreshInterval);
+    }
+  }, [enabled, refreshInterval, fetchData]);
 
   return {
     data,
@@ -145,32 +194,32 @@ export function useRealTimeData<T = unknown>({
 export function useDashboardData(tenantId: string) {
   const animals = useRealTimeData({
     endpoint: 'animals',
-    params: { limit: 1000 },
-    refreshInterval: 30000,
+    params: { limit: 100 },
+    refreshInterval: 60000, // Reduced frequency to prevent rate limiting
   });
 
   const health = useRealTimeData({
     endpoint: 'health',
-    params: { limit: 1000 },
-    refreshInterval: 30000,
+    params: { limit: 100 },
+    refreshInterval: 60000,
   });
 
   const financial = useRealTimeData({
     endpoint: 'financial',
-    params: { limit: 1000 },
-    refreshInterval: 60000, // Financial data updates less frequently
+    params: { limit: 100 },
+    refreshInterval: 120000, // Financial data updates less frequently
   });
 
   const feeding = useRealTimeData({
     endpoint: 'feeding',
-    params: { limit: 1000 },
-    refreshInterval: 30000,
+    params: { limit: 100 },
+    refreshInterval: 60000,
   });
 
   const tasks = useRealTimeData({
     endpoint: 'tasks',
-    params: { limit: 1000 },
-    refreshInterval: 15000, // Tasks update more frequently
+    params: { limit: 100 },
+    refreshInterval: 30000, // Tasks update more frequently but less often
   });
 
   // Calculate summary statistics

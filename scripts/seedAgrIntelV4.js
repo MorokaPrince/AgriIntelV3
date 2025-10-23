@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Clean, comprehensive seeding script for AgrIntelV4 database
 async function connectDB() {
@@ -186,7 +185,7 @@ async function seedAnimals(db) {
       },
       images: [
         {
-          url: '/images/animals/cattle-1.jpeg',
+          url: '/images/modules/animals/cattle-1.jpeg',
           caption: 'Bella - Main photo',
           uploadedAt: new Date(),
         },
@@ -246,7 +245,7 @@ async function seedAnimals(db) {
       },
       images: [
         {
-          url: '/images/animals/cattle-2.jpeg',
+          url: '/images/animals/cattle-2.avif',
           caption: 'Max - Breeding bull',
           uploadedAt: new Date(),
         },

@@ -97,6 +97,10 @@ WeatherDataSchema.index({ tenantId: 1, 'location.name': 1 });
 WeatherDataSchema.index({ tenantId: 1, 'location.latitude': 1, 'location.longitude': 1 });
 WeatherDataSchema.index({ tenantId: 1, lastUpdated: -1 });
 
+// Compound indexes for common query patterns
+WeatherDataSchema.index({ tenantId: 1, lastUpdated: -1, 'location.name': 1 }); // Recent weather by location
+WeatherDataSchema.index({ tenantId: 1, 'location.latitude': 1, 'location.longitude': 1, lastUpdated: -1 }); // Location-based recent weather
+
 // TTL index to automatically delete old weather data (30 days)
 WeatherDataSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 

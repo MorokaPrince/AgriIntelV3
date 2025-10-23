@@ -78,9 +78,9 @@ const RFIDRecordSchema = new Schema<IRFIDRecord>(
     },
     batteryLevel: {
       type: Number,
-      required: true,
-      min: 0,
-      max: 100,
+      required: [true, 'Battery level is required'],
+      min: [0, 'Battery level cannot be less than 0'],
+      max: [100, 'Battery level cannot exceed 100'],
     },
     signalStrength: {
       type: String,
@@ -127,6 +127,11 @@ RFIDRecordSchema.index({ tenantId: 1, animalId: 1 });
 RFIDRecordSchema.index({ tenantId: 1, status: 1 });
 RFIDRecordSchema.index({ tenantId: 1, lastScan: -1 });
 RFIDRecordSchema.index({ tenantId: 1, batteryLevel: 1 });
+
+// Compound indexes for common query patterns
+RFIDRecordSchema.index({ tenantId: 1, status: 1, batteryLevel: 1 }); // Maintenance needs
+RFIDRecordSchema.index({ tenantId: 1, lastScan: -1, status: 1 }); // Recent scans by status
+RFIDRecordSchema.index({ tenantId: 1, batteryLevel: 1, status: 1 }); // Battery alerts by status
 
 // Virtual for days since last scan
 RFIDRecordSchema.virtual('daysSinceLastScan').get(function () {

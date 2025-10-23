@@ -56,13 +56,19 @@ const FeedRecordSchema = new Schema<IFeedRecord>(
     },
     minStock: {
       type: Number,
-      required: true,
-      min: 0,
+      required: [true, 'Minimum stock level is required'],
+      min: [0, 'Minimum stock cannot be negative'],
     },
     maxStock: {
       type: Number,
-      required: true,
-      min: 0,
+      required: [true, 'Maximum stock level is required'],
+      min: [0, 'Maximum stock cannot be negative'],
+      validate: {
+        validator: function(value: number) {
+          return value >= this.minStock;
+        },
+        message: 'Maximum stock must be greater than or equal to minimum stock',
+      },
     },
     costPerUnit: {
       type: Number,
@@ -76,7 +82,13 @@ const FeedRecordSchema = new Schema<IFeedRecord>(
     },
     expiryDate: {
       type: Date,
-      required: true,
+      required: [true, 'Expiry date is required'],
+      validate: {
+        validator: function(value: Date) {
+          return value >= new Date();
+        },
+        message: 'Expiry date cannot be in the past',
+      },
     },
     quality: {
       type: String,
@@ -109,6 +121,11 @@ FeedRecordSchema.index({ tenantId: 1, type: 1 });
 FeedRecordSchema.index({ tenantId: 1, currentStock: 1 });
 FeedRecordSchema.index({ tenantId: 1, expiryDate: 1 });
 FeedRecordSchema.index({ tenantId: 1, supplier: 1 });
+
+// Compound indexes for common query patterns
+FeedRecordSchema.index({ tenantId: 1, type: 1, currentStock: 1 }); // Stock levels by type
+FeedRecordSchema.index({ tenantId: 1, expiryDate: 1, currentStock: 1 }); // Expiring items with stock
+FeedRecordSchema.index({ tenantId: 1, currentStock: 1, minStock: 1 }); // Low stock alerts
 
 // Virtual for stock status
 FeedRecordSchema.virtual('stockStatus').get(function () {

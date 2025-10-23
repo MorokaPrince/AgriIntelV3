@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '10');
+        const limit = parseInt(searchParams.get('limit') || '48');
         const status = searchParams.get('status');
         const priority = searchParams.get('priority');
         const category = searchParams.get('category');

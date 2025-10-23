@@ -8,7 +8,7 @@ export async function GET(
 ) {
   return withAuth(
     request,
-    async (_request: NextRequest, _session: unknown) => {
+    async (_request: NextRequest) => {
       try {
         const { location } = await params;
 

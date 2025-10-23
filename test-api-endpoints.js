@@ -1,4 +1,4 @@
-const http = require('http');
+import http from 'http';
 
 // Test configuration
 const BASE_URL = 'http://localhost:3002';

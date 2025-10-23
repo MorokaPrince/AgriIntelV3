@@ -264,22 +264,92 @@ export interface TaskRecord {
   updatedAt: string;
 }
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
 class ApiService {
   private baseUrl: string;
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private pendingRequests: Map<string, Promise<unknown>> = new Map();
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
   }
 
+  private getCacheKey(endpoint: string, options: RequestInit = {}): string {
+    const method = options.method || 'GET';
+    const body = options.body ? JSON.stringify(options.body) : '';
+    return `${method}:${endpoint}:${body}`;
+  }
+
+  private getFromCache<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    if (Date.now() - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data as T;
+  }
+
+  private setCache<T>(key: string, data: T, ttl: number = 5 * 60 * 1000): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    useCache: boolean = false,
+    cacheTtl: number = 5 * 60 * 1000
+  ): Promise<T> {
+    const cacheKey = this.getCacheKey(endpoint, options);
+
+    // Check cache first for GET requests
+    if (useCache && options.method === 'GET') {
+      const cachedData = this.getFromCache<T>(cacheKey);
+      if (cachedData !== null) {
+        return cachedData;
+      }
+    }
+
+    // Deduplicate concurrent requests
+    const pendingKey = `${options.method || 'GET'}:${endpoint}`;
+    if (this.pendingRequests.has(pendingKey)) {
+      return this.pendingRequests.get(pendingKey) as Promise<T>;
+    }
+
+    const requestPromise = this.performRequest<T>(endpoint, options, cacheKey, useCache, cacheTtl);
+    this.pendingRequests.set(pendingKey, requestPromise);
+
+    try {
+      return await requestPromise;
+    } finally {
+      this.pendingRequests.delete(pendingKey);
+    }
+  }
+
+  private async performRequest<T>(
+    endpoint: string,
+    options: RequestInit,
+    cacheKey: string,
+    useCache: boolean,
+    cacheTtl: number
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
         ...options.headers,
       },
       ...options,
@@ -290,22 +360,63 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+
+        // Enhanced error handling with specific error types
+        if (response.status === 429) {
+          throw new Error(`Rate limit exceeded: ${errorData.error || 'Too many requests'}`);
+        } else if (response.status === 401) {
+          throw new Error(`Authentication required: ${errorData.error || 'Unauthorized'}`);
+        } else if (response.status === 403) {
+          throw new Error(`Access forbidden: ${errorData.error || 'Forbidden'}`);
+        } else if (response.status >= 500) {
+          throw new Error(`Server error: ${errorData.error || 'Internal server error'}`);
+        } else {
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // Cache successful GET requests
+      if (useCache && options.method === 'GET') {
+        this.setCache(cacheKey, data, cacheTtl);
+      }
+
+      return data;
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
+
+      // Retry logic for transient failures
+      if (error instanceof Error && this.isRetryableError(error)) {
+        console.log(`Retrying request for ${endpoint}...`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return this.performRequest(endpoint, options, cacheKey, useCache, cacheTtl);
+      }
+
       throw error;
     }
   }
 
+  private isRetryableError(error: Error): boolean {
+    const retryableErrors = [
+      'NetworkError',
+      'TimeoutError',
+      'ECONNRESET',
+      'ENOTFOUND',
+      'Server error',
+    ];
+
+    return retryableErrors.some(retryableError =>
+      error.message.includes(retryableError)
+    );
+  }
+
   private getAuthHeaders(): HeadersInit {
-    // For demo purposes, we'll use a simple approach
     // In production, this should come from NextAuth session
+    // For now, we'll use a basic implementation
     return {
       'Content-Type': 'application/json',
-      // Add any additional headers needed for authentication
+      // Add proper authentication headers when available
     };
   }
 
@@ -318,14 +429,20 @@ class ApiService {
     search?: string;
   }): Promise<PaginatedResponse<Animal>> {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.page) searchParams.append('page', Math.max(1, params.page).toString());
+    if (params?.limit) searchParams.append('limit', Math.min(1000, Math.max(1, params.limit)).toString());
     if (params?.species) searchParams.append('species', params.species);
     if (params?.status) searchParams.append('status', params.status);
     if (params?.search) searchParams.append('search', params.search);
 
     const query = searchParams.toString();
-    return this.request<PaginatedResponse<Animal>>(`/animals${query ? `?${query}` : ''}`);
+    // Cache animal data for 2 minutes since it doesn't change frequently
+    return this.request<PaginatedResponse<Animal>>(
+      `/animals${query ? `?${query}` : ''}`,
+      {},
+      true,
+      2 * 60 * 1000
+    );
   }
 
   async getAnimal(id: string): Promise<ApiResponse<Animal>> {

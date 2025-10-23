@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Comprehensive seeding script for AgrIntelV4 database
 async function connectDB() {
   try {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://luckyrakgama:MayR123@cluster0.yvkuood.mongodb.net/AgrIntelV4?retryWrites=true&w=majority&appName=Cluster0';
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://agriintel:XYEXSyQkSiAhgWg7@cluster0.yvkuood.mongodb.net/AgriIntelV3?retryWrites=true&w=majority&appName=AgriIntelV3';
     await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB Atlas - AgrIntelV4');
+    console.log('✅ Connected to MongoDB Atlas - AgriIntelV3');
     return mongoose.connection.db;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
@@ -21,7 +20,7 @@ async function seedDatabase() {
 
     // Clear existing data
     console.log('🧹 Clearing existing data...');
-    const collections = ['users', 'animals', 'healthrecords', 'financialrecords', 'feedingrecords', 'breedingrecords', 'rfidrecords', 'tasks'];
+    const collections = ['users', 'animals', 'healthrecords', 'financialrecords', 'feedingrecords', 'breedingrecords', 'rfidrecords', 'tasks', 'weatherdatas'];
 
     for (const collectionName of collections) {
       await db.collection(collectionName).deleteMany({});
@@ -37,6 +36,7 @@ async function seedDatabase() {
     await seedBreedingRecords(db);
     await seedRFIDRecords(db);
     await seedTasks(db);
+    await seedWeatherDatas(db);
 
     // Display final summary
     await displayDataSummary(db);
@@ -186,7 +186,7 @@ async function seedAnimals(db) {
       },
       images: [
         {
-          url: '/images/animals/cattle-1.jpeg',
+          url: '/images/modules/animals/cattle-1.jpeg',
           caption: 'Bella - Main photo',
           uploadedAt: new Date(),
         },
@@ -246,7 +246,7 @@ async function seedAnimals(db) {
       },
       images: [
         {
-          url: '/images/animals/cattle-2.jpeg',
+          url: '/images/animals/cattle-2.avif',
           caption: 'Max - Breeding bull',
           uploadedAt: new Date(),
         },
@@ -354,30 +354,98 @@ async function seedFinancialRecords(db) {
 async function seedFeedingRecords(db) {
   console.log('\n🌾 Seeding feeding records...');
 
-  const feedingRecords = [
+  const feedTypes = [
     {
-      tenantId: 'demo-farm',
       feedName: 'Premium Cattle Feed',
       type: 'concentrate',
-      currentStock: 500,
+      baseStock: 500,
       unit: 'kg',
-      minStock: 100,
-      maxStock: 1000,
-      costPerUnit: 15,
+      baseCost: 15,
       supplier: 'Farm Feeds Ltd',
-      expiryDate: new Date('2024-12-31'),
       quality: 'premium',
-      nutritionalValue: {
-        protein: 18,
-        energy: 12,
-        fiber: 8,
-        fat: 4,
-      },
-      createdBy: 'demo-user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      nutritionalValue: { protein: 18, energy: 12, fiber: 8, fat: 4 },
+    },
+    {
+      feedName: 'Grass Hay',
+      type: 'roughage',
+      baseStock: 2000,
+      unit: 'kg',
+      baseCost: 3,
+      supplier: 'Local Farmer Co-op',
+      quality: 'standard',
+      nutritionalValue: { protein: 8, energy: 8, fiber: 35, fat: 2 },
+    },
+    {
+      feedName: 'Alfalfa Hay',
+      type: 'roughage',
+      baseStock: 1500,
+      unit: 'kg',
+      baseCost: 5,
+      supplier: 'Green Valley Farms',
+      quality: 'premium',
+      nutritionalValue: { protein: 16, energy: 10, fiber: 28, fat: 3 },
+    },
+    {
+      feedName: 'Corn Silage',
+      type: 'silage',
+      baseStock: 3000,
+      unit: 'kg',
+      baseCost: 2,
+      supplier: 'Midwest Grain Corp',
+      quality: 'standard',
+      nutritionalValue: { protein: 8, energy: 15, fiber: 22, fat: 3 },
+    },
+    {
+      feedName: 'Mineral Mix',
+      type: 'supplement',
+      baseStock: 200,
+      unit: 'kg',
+      baseCost: 25,
+      supplier: 'Nutri-Vet Supplies',
+      quality: 'premium',
+      nutritionalValue: { protein: 0, energy: 0, fiber: 0, fat: 0 },
+    },
+    {
+      feedName: 'Protein Supplement',
+      type: 'supplement',
+      baseStock: 150,
+      unit: 'kg',
+      baseCost: 35,
+      supplier: 'Farm Nutrition Inc',
+      quality: 'premium',
+      nutritionalValue: { protein: 45, energy: 8, fiber: 2, fat: 2 },
     }
   ];
+
+  const feedingRecords = [];
+
+  // Generate 48 feed records (8 variations of each of 6 feed types)
+  for (let i = 0; i < 48; i++) {
+    const feedType = feedTypes[i % feedTypes.length];
+    const variation = Math.floor(i / feedTypes.length);
+
+    // Add some variation to stock levels and costs
+    const stockVariation = (Math.random() - 0.5) * 0.3; // ±15% variation
+    const costVariation = (Math.random() - 0.5) * 0.2; // ±10% variation
+
+    feedingRecords.push({
+      tenantId: 'demo-farm',
+      feedName: feedType.feedName,
+      type: feedType.type,
+      currentStock: Math.round(feedType.baseStock * (1 + stockVariation)),
+      unit: feedType.unit,
+      minStock: Math.round(feedType.baseStock * 0.2), // 20% of base stock
+      maxStock: Math.round(feedType.baseStock * 2), // 200% of base stock
+      costPerUnit: Math.round(feedType.baseCost * (1 + costVariation) * 100) / 100,
+      supplier: feedType.supplier,
+      expiryDate: new Date(Date.now() + (30 + Math.random() * 90) * 24 * 60 * 60 * 1000), // 30-120 days from now
+      quality: feedType.quality,
+      nutritionalValue: feedType.nutritionalValue,
+      createdBy: 'demo-user',
+      createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000), // Random date within last 60 days
+      updatedAt: new Date(),
+    });
+  }
 
   const result = await db.collection('feedingrecords').insertMany(feedingRecords);
   console.log(`  ✓ Created ${result.insertedCount} feeding records`);
@@ -470,738 +538,175 @@ async function seedRFIDRecords(db) {
 async function seedTasks(db) {
   console.log('\n📋 Seeding tasks...');
 
-  const tasks = [
+  const taskTemplates = [
     {
-      tenantId: 'demo-farm',
-      title: 'Weekly Health Check - Bella',
-      description: 'Perform routine health examination on Bella (RFID001)',
-      assignedTo: 'USER_ID_PLACEHOLDER',
-      assignedBy: 'demo-user',
-      priority: 'medium',
-      status: 'pending',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      title: 'Weekly Health Check - {animal}',
+      description: 'Perform routine health examination on {animal} ({rfid})',
       category: 'health',
-      animalId: 'ANIMAL_ID_PLACEHOLDER',
+      priority: 'medium',
       estimatedHours: 1,
-      location: 'Farm Section A',
-      createdBy: 'demo-user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    },
+    {
+      title: 'Feed Inventory Check',
+      description: 'Check and update feed inventory levels',
+      category: 'feeding',
+      priority: 'high',
+      estimatedHours: 2,
+    },
+    {
+      title: 'Equipment Maintenance',
+      description: 'Perform routine maintenance on farm equipment',
+      category: 'maintenance',
+      priority: 'medium',
+      estimatedHours: 3,
+    },
+    {
+      title: 'Vaccination Schedule Review',
+      description: 'Review and update vaccination schedules for livestock',
+      category: 'health',
+      priority: 'high',
+      estimatedHours: 1,
+    },
+    {
+      title: 'Financial Record Update',
+      description: 'Update financial records and expense tracking',
+      category: 'financial',
+      priority: 'medium',
+      estimatedHours: 2,
+    },
+    {
+      title: 'Breeding Program Review',
+      description: 'Review breeding program progress and update records',
+      category: 'breeding',
+      priority: 'medium',
+      estimatedHours: 2,
     }
   ];
+
+  const tasks = [];
+  const animals = ['Bella', 'Max', 'Daisy', 'Charlie', 'Luna', 'Rocky'];
+  const rfidTags = ['RFID001', 'RFID002', 'RFID003', 'RFID004', 'RFID005', 'RFID006'];
+
+  // Generate 48 tasks with varied dates and priorities
+  for (let i = 0; i < 48; i++) {
+    const template = taskTemplates[i % taskTemplates.length];
+    const animalIndex = i % animals.length;
+    const daysOffset = Math.floor(i / 4) * 7; // Spread over multiple weeks
+
+    let title = template.title;
+    let description = template.description;
+
+    if (template.category === 'health' && i % 3 === 0) {
+      title = title.replace('{animal}', animals[animalIndex]);
+      description = description.replace('{animal}', animals[animalIndex]).replace('{rfid}', rfidTags[animalIndex]);
+    } else {
+      title = title.replace(' - {animal}', '');
+      description = description.replace(' on {animal} ({rfid})', '');
+    }
+
+    tasks.push({
+      tenantId: 'demo-farm',
+      title: title,
+      description: description,
+      assignedTo: 'demo-user',
+      assignedBy: 'demo-user',
+      priority: i % 3 === 0 ? 'high' : (i % 2 === 0 ? 'medium' : 'low'),
+      status: i % 4 === 0 ? 'completed' : (i % 3 === 0 ? 'in_progress' : 'pending'),
+      dueDate: new Date(Date.now() + daysOffset * 24 * 60 * 60 * 1000 + Math.random() * 7 * 24 * 60 * 60 * 1000),
+      category: template.category,
+      animalId: template.category === 'health' && i % 3 === 0 ? `ANIMAL_${animalIndex + 1}` : null,
+      estimatedHours: template.estimatedHours,
+      location: i % 3 === 0 ? 'Farm Section A' : (i % 2 === 0 ? 'Farm Section B' : 'Farm Section C'),
+      createdBy: 'demo-user',
+      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(),
+    });
+  }
 
   const result = await db.collection('tasks').insertMany(tasks);
   console.log(`  ✓ Created ${result.insertedCount} tasks`);
 }
 
+async function seedWeatherDatas(db) {
+  console.log('\n🌤️ Seeding weather data...');
+
+  const weatherData = [];
+  const locations = [
+    { name: 'Farm Section A', latitude: -26.2041, longitude: 28.0473 },
+    { name: 'Farm Section B', latitude: -26.2042, longitude: 28.0474 },
+    { name: 'Farm Section C', latitude: -26.2043, longitude: 28.0475 }
+  ];
+
+  // Generate 48 weather records (16 per location for variety)
+  for (let i = 0; i < 48; i++) {
+    const location = locations[i % locations.length];
+    const date = new Date();
+    date.setDate(date.getDate() - (47 - i)); // Spread over last 48 days
+
+    weatherData.push({
+      tenantId: 'demo-farm',
+      location: location.name,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      date: date,
+      temperature: {
+        min: Math.round((15 + Math.random() * 10) * 10) / 10, // 15-25°C
+        max: Math.round((20 + Math.random() * 15) * 10) / 10, // 20-35°C
+        avg: Math.round((18 + Math.random() * 12) * 10) / 10  // 18-30°C
+      },
+      humidity: Math.floor(40 + Math.random() * 40), // 40-80%
+      precipitation: Math.round((Math.random() * 20) * 10) / 10, // 0-20mm
+      windSpeed: Math.round((Math.random() * 25) * 10) / 10, // 0-25 km/h
+      windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)],
+      conditions: ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Clear'][Math.floor(Math.random() * 5)],
+      forecast: {
+        next24h: 'Partly cloudy with moderate temperatures',
+        next3days: 'Stable weather with slight chance of rain',
+        next7days: 'Mixed conditions with temperatures ranging from 18-28°C'
+      },
+      alerts: i % 10 === 0 ? ['Heat Warning'] : [], // Occasional heat warnings
+      recordedAt: new Date(),
+      source: 'Weather Station API',
+      accuracy: '95%'
+    });
+  }
+
+  const result = await db.collection('weatherdatas').insertMany(weatherData);
+  console.log(`  ✓ Created ${result.insertedCount} weather data records`);
+}
+
 async function displayDataSummary(db) {
   console.log('\n📊 Final Data Summary for AgrIntelV4:');
 
-  const collections = ['users', 'animals', 'healthrecords', 'financialrecords', 'feedingrecords', 'breedingrecords', 'rfidrecords', 'tasks'];
+  const collections = ['users', 'animals', 'healthrecords', 'financialrecords', 'feedingrecords', 'breedingrecords', 'rfidrecords', 'tasks', 'weatherdatas'];
   for (const collectionName of collections) {
     const count = await db.collection(collectionName).countDocuments();
     console.log(`   ${collectionName}: ${count} documents`);
   }
 }
 
-async function clearExistingData() {
-  console.log('🧹 Clearing existing data...');
-  const { User, Animal, HealthRecord, FinancialRecord, FeedRecord, BreedingRecord, RFIDRecord, Task } = await loadModels();
-
-  await Promise.all([
-    User.deleteMany({}),
-    Animal.deleteMany({}),
-    HealthRecord.deleteMany({}),
-    FinancialRecord.deleteMany({}),
-    FeedRecord.deleteMany({}),
-    BreedingRecord.deleteMany({}),
-    RFIDRecord.deleteMany({}),
-    Task.deleteMany({})
-  ]);
-  console.log('✅ Existing data cleared');
-}
 
 
 
 
 
-async function seedFeedRecords() {
-  console.log('🌱 Seeding feed records...');
 
-  const feedRecords = [
-    {
-      tenantId: 'demo-farm',
-      feedName: 'Premium Cattle Feed',
-      type: 'concentrate',
-      currentStock: 500,
-      unit: 'kg',
-      minStock: 100,
-      maxStock: 1000,
-      costPerUnit: 15,
-      supplier: 'Farm Feeds Ltd',
-      expiryDate: new Date('2024-12-31'),
-      quality: 'premium',
-      nutritionalValue: {
-        protein: 18,
-        energy: 12,
-        fiber: 8,
-        fat: 4,
-      },
-      createdBy: new mongoose.Types.ObjectId(),
-    },
-    {
-      tenantId: 'demo-farm',
-      feedName: 'Grass Hay',
-      type: 'roughage',
-      currentStock: 2000,
-      unit: 'kg',
-      minStock: 500,
-      maxStock: 3000,
-      costPerUnit: 3,
-      supplier: 'Local Farmer',
-      expiryDate: new Date('2024-10-31'),
-      quality: 'standard',
-      nutritionalValue: {
-        protein: 8,
-        energy: 8,
-        fiber: 35,
-        fat: 2,
-      },
-      createdBy: new mongoose.Types.ObjectId(),
-    },
-    // Add more feed records...
-  ];
 
-  for (const recordData of feedRecords) {
-    const existingRecord = await FeedRecord.findOne({
-      feedName: recordData.feedName,
-      supplier: recordData.supplier,
-    });
-    if (!existingRecord) {
-      const record = new FeedRecord(recordData);
-      await record.save();
-      console.log(`  ✓ Created feed record: ${recordData.feedName}`);
-    } else {
-      console.log(`  - Feed record already exists: ${recordData.feedName}`);
-    }
-  }
-}
 
-async function seedBreedingRecords() {
-  console.log('🌱 Seeding breeding records...');
 
-  const breedingRecords = [
-    {
-      tenantId: 'demo-farm',
-      programName: 'Angus Elite Program',
-      species: 'cattle',
-      breed: 'Angus',
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-12-31'),
-      status: 'active',
-      totalAnimals: 25,
-      breedingFemales: 20,
-      breedingMales: 2,
-      expectedOffspring: 18,
-      actualOffspring: 15,
-      successRate: 75,
-      goals: ['Improve meat quality', 'Increase growth rate', 'Better disease resistance'],
-      manager: 'John Admin',
-      budget: 50000,
-      currency: 'ZAR',
-      createdBy: new mongoose.Types.ObjectId(),
-    },
-    // Add more breeding records...
-  ];
 
-  for (const recordData of breedingRecords) {
-    const existingRecord = await BreedingRecord.findOne({
-      programName: recordData.programName,
-    });
-    if (!existingRecord) {
-      const record = new BreedingRecord(recordData);
-      await record.save();
-      console.log(`  ✓ Created breeding record: ${recordData.programName}`);
-    } else {
-      console.log(`  - Breeding record already exists: ${recordData.programName}`);
-    }
-  }
-}
 
-async function seedRFIDRecords() {
-  console.log('🌱 Seeding RFID records...');
 
-  const rfidRecords = [
-    {
-      tenantId: 'demo-farm',
-      tagId: 'RFID001',
-      animalId: 'ANIMAL_ID_HERE', // Will be updated after animals are created
-      animalName: 'Bella',
-      species: 'cattle',
-      breed: 'Angus',
-      tagType: 'ear_tag',
-      frequency: '134.2 kHz',
-      installationDate: new Date('2023-06-01'),
-      lastScan: new Date(),
-      batteryLevel: 85,
-      signalStrength: 'excellent',
-      location: 'Farm Section A',
-      status: 'active',
-      temperature: 38.5,
-      healthAlerts: 0,
-      createdBy: new mongoose.Types.ObjectId(),
-    },
-    {
-      tenantId: 'demo-farm',
-      tagId: 'RFID002',
-      animalId: 'ANIMAL_ID_HERE', // Will be updated after animals are created
-      animalName: 'Max',
-      species: 'cattle',
-      breed: 'Hereford',
-      tagType: 'ear_tag',
-      frequency: '134.2 kHz',
-      installationDate: new Date('2023-06-01'),
-      lastScan: new Date(),
-      batteryLevel: 92,
-      signalStrength: 'excellent',
-      location: 'Farm Section B',
-      status: 'active',
-      temperature: 38.2,
-      healthAlerts: 0,
-      createdBy: new mongoose.Types.ObjectId(),
-    },
-    // Add more RFID records...
-  ];
 
-  for (const recordData of rfidRecords) {
-    const existingRecord = await RFIDRecord.findOne({
-      tagId: recordData.tagId,
-    });
-    if (!existingRecord) {
-      const record = new RFIDRecord(recordData);
-      await record.save();
-      console.log(`  ✓ Created RFID record: ${recordData.tagId}`);
-    } else {
-      console.log(`  - RFID record already exists: ${recordData.tagId}`);
-    }
-  }
-}
 
-async function seedAllData() {
-  try {
-    await connectDB();
-    console.log('🚀 Starting comprehensive data seeding process...\n');
 
-    // Clear existing data for clean seed
-    await clearExistingData();
 
-    // 1. Create users first
-    const users = await seedUsers();
-    const createdBy = users[0]._id; // Use first user as creator
 
-    // 2. Create animals with complete data
-    const animals = await seedAnimals(createdBy);
 
-    // 3. Create related records using actual animal IDs
-    await seedHealthRecords(animals, createdBy);
-    await seedRFIDRecords(animals, createdBy);
-    await seedFinancialRecords(createdBy);
-    await seedFeedRecords(createdBy);
-    await seedBreedingRecords(animals, createdBy);
-    await seedTasks(users, animals, createdBy);
-
-    // 4. Update animal records with cross-references
-    await updateAnimalCrossReferences(animals);
-
-    console.log('\n✅ Comprehensive data seeding completed successfully!');
-    await displayDataSummary();
-
-  } catch (error) {
-    console.error('❌ Error during comprehensive seeding:', error);
-  } finally {
-    await mongoose.connection.close();
-    console.log('\n🔒 Database connection closed');
-  }
-}
-
-async function seedUsers() {
-  console.log('🌱 Seeding users...');
-  const { User } = await loadModels();
-
-  const users = [
-    {
-      tenantId: 'demo-farm',
-      email: 'admin@demo.com',
-      password: 'password123',
-      firstName: 'John',
-      lastName: 'Admin',
-      phone: '+1234567890',
-      role: 'admin',
-      country: 'ZA',
-      region: 'Gauteng',
-      farmName: 'Demo Farm',
-      farmSize: 100,
-      livestockTypes: ['cattle', 'sheep', 'goats'],
-      isActive: true,
-      preferences: {
-        language: 'en',
-        currency: 'ZAR',
-        timezone: 'Africa/Johannesburg',
-        theme: 'auto',
-        notifications: {
-          email: true,
-          sms: false,
-          push: true,
-        },
-      },
-      permissions: ['all'],
-    },
-    {
-      tenantId: 'demo-farm',
-      email: 'manager@demo.com',
-      password: 'password123',
-      firstName: 'Jane',
-      lastName: 'Manager',
-      phone: '+1234567891',
-      role: 'manager',
-      country: 'ZA',
-      region: 'Gauteng',
-      farmName: 'Demo Farm',
-      farmSize: 100,
-      livestockTypes: ['cattle', 'sheep'],
-      isActive: true,
-      preferences: {
-        language: 'en',
-        currency: 'ZAR',
-        timezone: 'Africa/Johannesburg',
-        theme: 'light',
-        notifications: {
-          email: true,
-          sms: true,
-          push: true,
-        },
-      },
-      permissions: ['animals:read', 'animals:write', 'health:read', 'health:write'],
-    },
-  ];
-
-  const createdUsers = [];
-  for (const userData of users) {
-    const existingUser = await User.findOne({ email: userData.email });
-    if (!existingUser) {
-      const user = new User(userData);
-      const savedUser = await user.save();
-      createdUsers.push(savedUser);
-      console.log(`  ✓ Created user: ${userData.firstName} ${userData.lastName}`);
-    } else {
-      createdUsers.push(existingUser);
-      console.log(`  - User already exists: ${userData.firstName} ${userData.lastName}`);
-    }
-  }
-
-  return createdUsers;
-}
-
-async function seedAnimals(createdBy) {
-  console.log('🌱 Seeding animals with complete data...');
-  const { Animal } = await loadModels();
-
-  const animals = [
-    {
-      tenantId: 'demo-farm',
-      rfidTag: 'RFID001',
-      name: 'Bella',
-      species: 'cattle',
-      breed: 'Angus',
-      dateOfBirth: new Date('2020-03-15'),
-      gender: 'female',
-      color: 'Black',
-      weight: 450,
-      height: 140,
-      status: 'active',
-      location: {
-        latitude: -26.2041,
-        longitude: 28.0473,
-        address: 'Farm Section A',
-        farmSection: 'Section A',
-      },
-      health: {
-        overallCondition: 'excellent',
-        lastCheckup: new Date(),
-        nextCheckup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        vaccinations: [
-          {
-            vaccine: 'Brucellosis',
-            date: new Date('2024-01-15'),
-            nextDue: new Date('2025-01-15'),
-            veterinarian: 'Dr. Smith',
-          },
-        ],
-        diseases: [],
-      },
-      breeding: {
-        isBreedingStock: true,
-        fertilityStatus: 'fertile',
-        lastBreedingDate: new Date('2023-11-01'),
-        expectedCalvingDate: new Date('2024-08-01'),
-        offspring: [],
-      },
-      nutrition: {
-        dailyFeedIntake: 12,
-        feedType: 'Grass Hay',
-        supplements: ['Mineral Mix', 'Protein Supplement'],
-        feedingSchedule: 'Twice daily',
-      },
-      productivity: {
-        milkProduction: 25,
-        weightGain: 1.2,
-        lastMeasurement: new Date(),
-      },
-      images: [
-        {
-          url: '/images/animals/cattle-1.jpeg',
-          caption: 'Bella - Main photo',
-          uploadedAt: new Date(),
-        },
-      ],
-      notes: 'Excellent breeding cow, good temperament',
-      createdBy,
-      updatedBy: createdBy,
-    },
-    {
-      tenantId: 'demo-farm',
-      rfidTag: 'RFID002',
-      name: 'Max',
-      species: 'cattle',
-      breed: 'Hereford',
-      dateOfBirth: new Date('2019-08-20'),
-      gender: 'male',
-      color: 'Red and White',
-      weight: 680,
-      height: 150,
-      status: 'breeding',
-      location: {
-        latitude: -26.2041,
-        longitude: 28.0473,
-        address: 'Farm Section B',
-        farmSection: 'Section B',
-      },
-      health: {
-        overallCondition: 'good',
-        lastCheckup: new Date(),
-        nextCheckup: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
-        vaccinations: [
-          {
-            vaccine: 'IBR/BVD',
-            date: new Date('2024-02-01'),
-            nextDue: new Date('2025-02-01'),
-            veterinarian: 'Dr. Smith',
-          },
-        ],
-        diseases: [],
-      },
-      breeding: {
-        isBreedingStock: true,
-        fertilityStatus: 'fertile',
-        offspring: [],
-      },
-      nutrition: {
-        dailyFeedIntake: 15,
-        feedType: 'Alfalfa Hay',
-        supplements: ['Mineral Mix'],
-        feedingSchedule: 'Three times daily',
-      },
-      productivity: {
-        weightGain: 1.5,
-        lastMeasurement: new Date(),
-      },
-      images: [
-        {
-          url: '/images/animals/cattle-2.jpeg',
-          caption: 'Max - Breeding bull',
-          uploadedAt: new Date(),
-        },
-      ],
-      notes: 'Prime breeding bull, excellent genetics',
-      createdBy,
-      updatedBy: createdBy,
-    },
-    // Add more animals...
-  ];
-
-  const createdAnimals = [];
-  for (const animalData of animals) {
-    const existingAnimal = await Animal.findOne({ rfidTag: animalData.rfidTag });
-    if (!existingAnimal) {
-      const animal = new Animal(animalData);
-      const savedAnimal = await animal.save();
-      createdAnimals.push(savedAnimal);
-      console.log(`  ✓ Created animal: ${savedAnimal.name} (${savedAnimal.species}) - RFID: ${savedAnimal.rfidTag}`);
-    } else {
-      createdAnimals.push(existingAnimal);
-      console.log(`  - Animal already exists: ${existingAnimal.name}`);
-    }
-  }
-
-  return createdAnimals;
-}
-
-async function seedHealthRecords(animals, createdBy) {
-  console.log('🌱 Seeding health records with proper animal links...');
-  const { HealthRecord } = await loadModels();
-
-  for (const animal of animals) {
-    const records = [
-      {
-        tenantId: 'demo-farm',
-        animalId: animal._id,
-        animalRfid: animal.rfidTag,
-        recordType: 'checkup',
-        date: new Date(),
-        veterinarian: 'Dr. Smith',
-        diagnosis: 'Routine health check - Excellent condition',
-        symptoms: [],
-        treatment: 'No treatment required',
-        medications: [],
-        vaccinations: [{
-          vaccine: 'Annual Vaccination',
-          batchNumber: 'BATCH2024',
-          manufacturer: 'FarmVet Inc',
-          nextDueDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          notes: 'Annual booster completed'
-        }],
-        tests: [],
-        followUp: {
-          required: false,
-          instructions: 'Continue regular monitoring'
-        },
-        cost: {
-          consultationFee: 150,
-          medicationCost: 0,
-          testCost: 0,
-          totalCost: 150,
-          currency: 'ZAR'
-        },
-        notes: 'Animal in excellent health',
-        attachments: [],
-        severity: 'low',
-        status: 'resolved',
-        createdBy,
-        updatedBy: createdBy,
-      }
-    ];
-
-    for (const recordData of records) {
-      const record = new HealthRecord(recordData);
-      await record.save();
-      console.log(`  ✓ Created health record for ${animal.name}`);
-    }
-  }
-}
-
-async function seedRFIDRecords(animals, createdBy) {
-  console.log('🌱 Seeding RFID records with proper animal links...');
-  const { RFIDRecord } = await loadModels();
-
-  for (const animal of animals) {
-    const rfidData = {
-      tenantId: 'demo-farm',
-      tagId: animal.rfidTag,
-      animalId: animal._id.toString(),
-      animalName: animal.name,
-      species: animal.species,
-      breed: animal.breed,
-      tagType: 'ear_tag',
-      frequency: '134.2 kHz',
-      installationDate: new Date('2023-06-01'),
-      lastScan: new Date(),
-      batteryLevel: Math.floor(Math.random() * 30) + 70,
-      signalStrength: 'excellent',
-      location: animal.location.farmSection,
-      status: 'active',
-      temperature: 38.5 + (Math.random() * 2),
-      healthAlerts: 0,
-      createdBy,
-    };
-
-    const rfidRecord = new RFIDRecord(rfidData);
-    await rfidRecord.save();
-    console.log(`  ✓ Created RFID record for ${animal.name} - Tag: ${animal.rfidTag}`);
-  }
-}
-
-async function seedFinancialRecords(createdBy) {
-  console.log('🌱 Seeding financial records...');
-  const { FinancialRecord } = await loadModels();
-
-  const financialRecords = [
-    {
-      tenantId: 'demo-farm',
-      type: 'income',
-      category: 'livestock_sales',
-      amount: 15000,
-      currency: 'ZAR',
-      description: 'Sale of 5 cattle to local butcher',
-      date: new Date('2024-01-15'),
-      paymentMethod: 'bank_transfer',
-      vendor: 'Local Butcher',
-      createdBy,
-    },
-    {
-      tenantId: 'demo-farm',
-      type: 'expense',
-      category: 'feed',
-      amount: 2500,
-      currency: 'ZAR',
-      description: 'Monthly feed purchase - Premium cattle feed',
-      date: new Date('2024-01-01'),
-      paymentMethod: 'bank_transfer',
-      vendor: 'Farm Feeds Ltd',
-      createdBy,
-    },
-  ];
-
-  for (const recordData of financialRecords) {
-    const record = new FinancialRecord(recordData);
-    await record.save();
-    console.log(`  ✓ Created financial record: ${recordData.description}`);
-  }
-}
-
-async function seedFeedRecords(createdBy) {
-  console.log('🌱 Seeding feed records...');
-  const { FeedRecord } = await loadModels();
-
-  const feedRecords = [
-    {
-      tenantId: 'demo-farm',
-      feedName: 'Premium Cattle Feed',
-      type: 'concentrate',
-      currentStock: 500,
-      unit: 'kg',
-      minStock: 100,
-      maxStock: 1000,
-      costPerUnit: 15,
-      supplier: 'Farm Feeds Ltd',
-      expiryDate: new Date('2024-12-31'),
-      quality: 'premium',
-      nutritionalValue: {
-        protein: 18,
-        energy: 12,
-        fiber: 8,
-        fat: 4,
-      },
-      createdBy,
-    },
-  ];
-
-  for (const recordData of feedRecords) {
-    const record = new FeedRecord(recordData);
-    await record.save();
-    console.log(`  ✓ Created feed record: ${recordData.feedName}`);
-  }
-}
-
-async function seedBreedingRecords(animals, createdBy) {
-  console.log('🌱 Seeding breeding records...');
-  const { BreedingRecord } = await loadModels();
-
-  const breedingRecords = [
-    {
-      tenantId: 'demo-farm',
-      programName: 'Angus Elite Program',
-      species: 'cattle',
-      breed: 'Angus',
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-12-31'),
-      status: 'active',
-      totalAnimals: animals.length,
-      breedingFemales: animals.filter(a => a.gender === 'female').length,
-      breedingMales: animals.filter(a => a.gender === 'male').length,
-      expectedOffspring: 18,
-      actualOffspring: 15,
-      successRate: 75,
-      goals: ['Improve meat quality', 'Increase growth rate', 'Better disease resistance'],
-      manager: 'John Admin',
-      budget: 50000,
-      currency: 'ZAR',
-      createdBy,
-    },
-  ];
-
-  for (const recordData of breedingRecords) {
-    const record = new BreedingRecord(recordData);
-    await record.save();
-    console.log(`  ✓ Created breeding record: ${recordData.programName}`);
-  }
-}
-
-async function seedTasks(users, animals, createdBy) {
-  console.log('🌱 Seeding tasks...');
-  const { Task } = await loadModels();
-
-  const tasks = [
-    {
-      tenantId: 'demo-farm',
-      title: 'Weekly Health Check - Bella',
-      description: 'Perform routine health examination on Bella (RFID001)',
-      assignedTo: users[0]._id,
-      assignedBy: createdBy,
-      priority: 'medium',
-      status: 'pending',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      category: 'health',
-      animalId: animals[0]._id,
-      estimatedHours: 1,
-      location: 'Farm Section A',
-      createdBy,
-    },
-  ];
-
-  for (const taskData of tasks) {
-    const task = new Task(taskData);
-    await task.save();
-    console.log(`  ✓ Created task: ${taskData.title}`);
-  }
-}
-
-async function updateAnimalCrossReferences(animals) {
-  console.log('🔗 Updating animal cross-references...');
-  const { Animal } = await loadModels();
-
-  for (const animal of animals) {
-    if (animal.breeding.offspring.length > 0) {
-      await Animal.updateMany(
-        { _id: { $in: animal.breeding.offspring } },
-        {
-          $set: {
-            'parentage.sireId': animal.gender === 'male' ? animal._id : undefined,
-            'parentage.damId': animal.gender === 'female' ? animal._id : undefined,
-          }
-        }
-      );
-    }
-  }
-  console.log('✅ Animal cross-references updated');
-}
-
-async function displayDataSummary() {
-  const { User, Animal, HealthRecord, FinancialRecord, FeedRecord, BreedingRecord, RFIDRecord, Task } = await loadModels();
-
-  console.log('\n📊 Final Data Summary:');
-  console.log(`   Users: ${await User.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Animals: ${await Animal.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Health Records: ${await HealthRecord.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Financial Records: ${await FinancialRecord.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Feed Records: ${await FeedRecord.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Breeding Records: ${await BreedingRecord.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   RFID Records: ${await RFIDRecord.countDocuments({ tenantId: 'demo-farm' })}`);
-  console.log(`   Tasks: ${await Task.countDocuments({ tenantId: 'demo-farm' })}`);
-}
 
 // Run seeding if called directly
 if (require.main === module) {
-  seedAllData();
+  seedDatabase();
 }
 
-module.exports = { seedAllData };
+module.exports = { seedDatabase };

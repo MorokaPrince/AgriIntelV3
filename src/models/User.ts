@@ -43,10 +43,11 @@ const UserSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address'],
     },
     password: {
       type: String,
@@ -65,8 +66,9 @@ const UserSchema = new Schema<IUser>(
     },
     phone: {
       type: String,
-      required: true,
+      required: [true, 'Phone number is required'],
       trim: true,
+      match: [/^\+?[\d\s\-\(\)]{10,}$/, 'Please provide a valid phone number'],
     },
     role: {
       type: String,
@@ -137,10 +139,12 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Indexes for performance
-UserSchema.index({ tenantId: 1, email: 1 });
+UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 UserSchema.index({ tenantId: 1, role: 1 });
 UserSchema.index({ tenantId: 1, country: 1 });
 UserSchema.index({ tenantId: 1, isActive: 1 });
+UserSchema.index({ email: 1, isActive: 1 }); // For authentication queries
+UserSchema.index({ tenantId: 1, lastLogin: -1 }); // For recent activity queries
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function (next) {
@@ -153,7 +157,7 @@ UserSchema.pre('save', async function (next) {
     user.password = await bcrypt.hash(user.password, salt);
     next();
   } catch (error) {
-    next(error);
+    next(error as Error);
   }
 });
 

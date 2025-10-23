@@ -93,7 +93,14 @@ const FinancialRecordSchema = new Schema<IFinancialRecord>(
     },
     exchangeRate: {
       type: Number,
-      min: 0,
+      min: [0, 'Exchange rate cannot be negative'],
+      validate: {
+        validator: function(value: number) {
+          // If currency is not USD, exchange rate should be provided
+          return this.currency === 'USD' || (value && value > 0);
+        },
+        message: 'Exchange rate is required for non-USD currencies',
+      },
     },
     date: {
       type: Date,
@@ -203,6 +210,12 @@ FinancialRecordSchema.index({ tenantId: 1, 'relatedEntities.animalId': 1 });
 FinancialRecordSchema.index({ tenantId: 1, 'relatedEntities.supplierId': 1 });
 FinancialRecordSchema.index({ tenantId: 1, 'relatedEntities.customerId': 1 });
 FinancialRecordSchema.index({ tenantId: 1, 'recurring.isRecurring': 1 });
+
+// Compound indexes for common query patterns
+FinancialRecordSchema.index({ tenantId: 1, recordType: 1, date: -1 }); // Records by type and date
+FinancialRecordSchema.index({ tenantId: 1, category: 1, subcategory: 1 }); // Category breakdowns
+FinancialRecordSchema.index({ tenantId: 1, 'approval.status': 1 }); // Pending approvals
+FinancialRecordSchema.index({ tenantId: 1, 'recurring.nextDueDate': 1 }); // Recurring transaction reminders
 
 // Pre-save middleware to calculate tax amount
 FinancialRecordSchema.pre('save', function (next) {

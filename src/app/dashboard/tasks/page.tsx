@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ClipboardDocumentListIcon,
@@ -85,11 +85,7 @@ export default function TasksPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'overdue'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [filter]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       // For now, using mock data until we implement tasks API
@@ -202,7 +198,11 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const getKPIAverage = (task: Task) => {
     if (!task.kpi) return 0;

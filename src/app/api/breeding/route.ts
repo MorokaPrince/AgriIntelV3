@@ -14,14 +14,14 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '10');
+        const limit = parseInt(searchParams.get('limit') || '48');
         const species = searchParams.get('species');
         const status = searchParams.get('status');
 
         const skip = (page - 1) * limit;
 
         // Build filter
-        const filter: Record<string, unknown> = { tenantId: session.user.tenantId };
+        const filter: Record<string, unknown> = { tenantId: session!.user.tenantId };
 
         if (species) {
           filter.species = species;
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
         // Create new breeding record
         const breedingRecord = new BreedingRecord({
           ...body,
-          tenantId: session.user.tenantId,
-          createdBy: session.user.id,
+          tenantId: session!.user.tenantId,
+          createdBy: session!.user.id,
         });
 
         const savedRecord = await breedingRecord.save();

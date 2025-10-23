@@ -69,7 +69,13 @@ const TaskSchema = new Schema<ITask>(
     },
     dueDate: {
       type: Date,
-      required: true,
+      required: [true, 'Due date is required'],
+      validate: {
+        validator: function(value: Date) {
+          return value >= new Date();
+        },
+        message: 'Due date cannot be in the past',
+      },
     },
     completedDate: {
       type: Date,
@@ -134,6 +140,12 @@ TaskSchema.index({ tenantId: 1, assignedTo: 1 });
 TaskSchema.index({ tenantId: 1, category: 1 });
 TaskSchema.index({ tenantId: 1, dueDate: 1 });
 TaskSchema.index({ tenantId: 1, priority: 1 });
+
+// Compound indexes for common query patterns
+TaskSchema.index({ tenantId: 1, status: 1, priority: 1 }); // Priority tasks by status
+TaskSchema.index({ tenantId: 1, assignedTo: 1, status: 1 }); // User tasks by status
+TaskSchema.index({ tenantId: 1, dueDate: 1, status: 1 }); // Due tasks by status
+TaskSchema.index({ tenantId: 1, category: 1, status: 1 }); // Category tasks by status
 
 // Virtual for overdue status
 TaskSchema.virtual('isOverdue').get(function () {

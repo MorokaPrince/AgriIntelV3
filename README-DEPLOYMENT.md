@@ -1,148 +1,259 @@
-# AgriIntel V3 - Deployment Guide
+# AgriIntel V3 - Vercel Deployment Guide
 
-## 🚀 Quick Start
+## 🚀 Quick Deployment
 
-### Development Mode
-```bash
-# Start on default port (3004)
-npm run dev
+1. **Connect to Vercel**
+   ```bash
+   vercel --prod
+   ```
 
-# Start on port 30003
-npm run dev:30003
+2. **Set Environment Variables**
+   - Go to Vercel Dashboard → Project Settings → Environment Variables
+   - Add all required variables from `.env.example`
 
-# Start on port 30004
-npm run dev:30004
+3. **Deploy**
+   ```bash
+   vercel --prod
+   ```
+
+## 📋 Prerequisites
+
+- Vercel CLI installed: `npm i -g vercel`
+- GitHub repository connected to Vercel
+- MongoDB Atlas cluster ready
+- All required API keys obtained
+
+## 🔧 Environment Variables Setup
+
+### Required Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/` |
+| `DB_NAME` | Database name | `AgriIntelV3` |
+| `NEXTAUTH_URL` | Production URL | `https://your-app.vercel.app` |
+| `NEXTAUTH_SECRET` | JWT secret (32+ chars) | `your-super-secret-jwt-key-here` |
+
+### API Keys (Required for full functionality)
+
+| Variable | Description | How to get |
+|----------|-------------|------------|
+| `GOOGLE_MAPS_API_KEY` | Google Maps integration | Google Cloud Console |
+| `WEATHER_API_KEY` | Weather data | OpenWeatherMap API |
+
+### Optional Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `RFID_BAUD_RATE` | RFID reader speed | `9600` |
+| `RFID_TIMEOUT` | RFID timeout (ms) | `5000` |
+| `BCRYPT_ROUNDS` | Password hashing | `12` |
+| `JWT_EXPIRES_IN` | Token expiration | `7d` |
+
+## ⚙️ Configuration Files
+
+### vercel.json
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "next.config.ts",
+      "use": "@vercel/next",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["iad1"]
+}
 ```
 
-### Production Mode
+### next.config.ts Optimizations
+- **Standalone output** for optimal serverless deployment
+- **Image optimization** with Vercel storage support
+- **Security headers** for production
+- **Bundle optimization** for faster cold starts
+
+## 🚀 Deployment Steps
+
+### 1. Initial Setup
 ```bash
-# Build the application
-npm run build
+# Install Vercel CLI
+npm i -g vercel
 
-# Start on port 30003
-npm run start:30003
+# Login to Vercel
+vercel login
 
-# Start on port 30004
-npm run start:30004
-
-# Or use deployment scripts
-npm run deploy:30003
-npm run deploy:30004
+# Link project (if not already linked)
+vercel link
 ```
 
-## 📋 Demo Credentials
+### 2. Environment Variables
+```bash
+# Set environment variables
+vercel env add MONGODB_URI production
+vercel env add NEXTAUTH_SECRET production
+vercel env add NEXTAUTH_URL production
+# ... add other variables
+```
 
-### Login Credentials
-- **Demo User**: `demo@agriintel.co.za` / `Demo123!`
-- **Pro User**: `pro@agriintel.co.za` / `Pro123!`
-- **Admin User**: `admin@agriintel.co.za` / `Admin123!`
+### 3. Deploy
+```bash
+# Deploy to production
+vercel --prod
 
-## 🏗️ Architecture Overview
+# Or deploy with specific settings
+vercel --prod --regions iad1
+```
 
-### Technology Stack
-- **Frontend**: Next.js 15.5.4, React 19.1.0, TypeScript
-- **Styling**: Tailwind CSS 4.0
-- **Animations**: Framer Motion
-- **State Management**: Zustand
-- **Authentication**: NextAuth.js
-- **Database**: MongoDB with Mongoose
-- **Real-time**: Socket.io
+### 4. Domain Setup (Optional)
+```bash
+# Add custom domain
+vercel domains add yourdomain.com
 
-### Key Features Implemented
-✅ **Authentication System**
-- Multi-tier user management (Beta, Professional, Enterprise)
-- Role-based access control
-- Persistent sessions
+# Set as primary
+vercel domains ls
+vercel domains buy yourdomain.com
+```
 
-✅ **Dashboard & Analytics**
-- Real-time data integration
-- Weather service integration
-- Interactive charts and metrics
-- Responsive design
+## 🔍 Deployment Checklist
 
-✅ **Animal Management**
-- Complete CRUD operations
-- RFID tag integration
-- Health status tracking
-- Location mapping
+### Pre-deployment
+- [ ] All environment variables set in Vercel dashboard
+- [ ] MongoDB Atlas allows all IPs (0.0.0.0/0) or add Vercel IPs
+- [ ] Database seeded with initial data (if needed)
+- [ ] API keys are valid and have sufficient quotas
+- [ ] Git repository is up to date
 
-✅ **Module System**
-- Health & Welfare
-- Feed & Nutrition
-- Financial Management
-- Breeding Program
-- RFID Technology
+### Post-deployment
+- [ ] Application loads without errors
+- [ ] Database connection works
+- [ ] Authentication flow functions
+- [ ] API endpoints respond correctly
+- [ ] Static assets load properly
+- [ ] Environment variables are accessible
 
-✅ **UI/UX Excellence**
-- Modern, responsive design
-- Real image backgrounds
-- Smooth animations
-- Mobile-first approach
+## 🛠️ Troubleshooting
 
-## 🔧 Configuration
+### Common Issues
 
-### Port Configuration
-The application supports dynamic port configuration through:
-- Package.json scripts for development
-- Environment variables for production
-- Shell scripts for automated deployment
+#### Database Connection Issues
+```bash
+# Check MongoDB connection
+vercel logs --follow
 
-### Database Configuration
-- MongoDB connection via `src/lib/mongodb.ts`
-- Environment variables for connection strings
-- Seed data available via `npm run seed`
+# Verify environment variables
+vercel env ls
+```
 
-## 🌐 API Endpoints
+#### Build Failures
+- Ensure Node.js version compatibility (18.x+)
+- Check for missing dependencies
+- Verify API keys are valid
 
-All API routes are available under `/api/`:
-- `/api/animals` - Animal management
-- `/api/health` - Health records
-- `/api/financial` - Financial data
-- `/api/feeding` - Feed management
-- `/api/breeding` - Breeding records
-- `/api/rfid` - RFID data
-- `/api/tasks` - Task management
-- `/api/weather/[location]` - Weather data
+#### Function Timeouts
+- API functions have 30s timeout limit
+- Optimize database queries
+- Use connection pooling properly
 
-## 📱 Responsive Design
+### Performance Optimization
 
-The application is fully responsive with:
-- Mobile-first design approach
-- Tablet and desktop optimizations
-- Touch-friendly interfaces
-- Adaptive layouts
+#### Cold Start Optimization
+- Keep function bundle size small
+- Use proper code splitting
+- Optimize dependencies
 
-## 🔒 Security Features
+#### Database Performance
+- Use indexes on frequently queried fields
+- Implement connection caching
+- Optimize query performance
 
-- Authentication middleware
-- Role-based route protection
-- Input validation and sanitization
-- Secure API endpoints
+## 🔒 Security Considerations
 
-## 🚀 Deployment Checklist
+### Production Security
+- [ ] Use strong NEXTAUTH_SECRET (32+ characters)
+- [ ] Set MongoDB Atlas IP whitelist appropriately
+- [ ] Enable 2FA on external services
+- [ ] Use different credentials for production
+- [ ] Regularly rotate API keys
 
-- [x] Application structure analyzed
-- [x] All modules implemented
-- [x] Authentication system working
-- [x] Responsive design implemented
-- [x] Real images integrated
-- [x] Port configuration set up
-- [ ] Database connectivity tested
-- [ ] Cross-browser testing completed
-- [ ] Performance optimization done
+### Environment Variables
+- [ ] Never commit `.env.local` to git
+- [ ] Use different values for development/production
+- [ ] Regularly audit environment variable access
+
+## 📊 Monitoring
+
+### Vercel Analytics
+- Enable Vercel Analytics in dashboard
+- Monitor function performance
+- Track error rates
+
+### Logs
+```bash
+# View real-time logs
+vercel logs --follow
+
+# View specific function logs
+vercel logs [deployment-url]
+
+# View historical logs
+vercel logs --since 1h
+```
+
+## 🔄 CI/CD Pipeline
+
+### Automatic Deployments
+1. Connect GitHub repository to Vercel
+2. Enable automatic deployments on push to main
+3. Set up preview deployments for pull requests
+
+### Manual Deployments
+```bash
+# Deploy specific branch
+vercel --prod
+
+# Deploy with environment promotion
+vercel promote [deployment-url] production
+```
 
 ## 📞 Support
 
-For technical support or questions:
-- Check the application logs
-- Review the browser console for errors
-- Verify database connectivity
-- Ensure all dependencies are installed
+### Getting Help
+- Check Vercel Dashboard for deployment status
+- Review function logs for errors
+- Test API endpoints locally first
+- Verify environment variables are set correctly
+
+### Common Commands
+```bash
+# Check deployment status
+vercel ls
+
+# View deployment details
+vercel inspect [deployment-url]
+
+# Rollback deployment
+vercel rollback [deployment-url]
+
+# Remove deployment
+vercel remove [deployment-url]
+```
 
 ## 🎯 Next Steps
 
-1. **Testing**: Complete cross-device and browser testing
-2. **Optimization**: Performance tuning and bundle optimization
-3. **Monitoring**: Set up error tracking and analytics
-4. **Backup**: Configure automated backups
-5. **Scaling**: Plan for horizontal scaling if needed
+1. **Set up monitoring** with error tracking
+2. **Configure custom domain** for production
+3. **Set up database backups** in MongoDB Atlas
+4. **Configure CDN** for global performance
+5. **Set up SSL certificate** (automatic with Vercel)
+
+---
+
+**Note**: This deployment guide is specific to AgriIntel V3. For general Next.js deployment questions, refer to [Vercel documentation](https://vercel.com/docs).
