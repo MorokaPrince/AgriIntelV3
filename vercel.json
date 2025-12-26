@@ -6,7 +6,6 @@
       "use": "@vercel/next",
       "config": {
         "maxLambdaSize": "50mb",
-        "functions": "src/app/api/**/*.ts",
         "installCommand": "npm install --production=false",
         "buildCommand": "npm run build"
       }
@@ -26,12 +25,6 @@
       "dest": "/$1"
     }
   ],
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
   "build": {
     "env": {
       "NODE_ENV": "production",
