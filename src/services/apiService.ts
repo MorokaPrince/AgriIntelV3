@@ -422,6 +422,7 @@ class ApiService {
 
   // Animal API methods
   async getAnimals(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     species?: string;
@@ -429,6 +430,7 @@ class ApiService {
     search?: string;
   }): Promise<PaginatedResponse<Animal>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', Math.max(1, params.page).toString());
     if (params?.limit) searchParams.append('limit', Math.min(1000, Math.max(1, params.limit)).toString());
     if (params?.species) searchParams.append('species', params.species);
@@ -474,6 +476,7 @@ class ApiService {
 
   // Health API methods
   async getHealthRecords(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     animalId?: string;
@@ -481,6 +484,7 @@ class ApiService {
     status?: string;
   }): Promise<PaginatedResponse<HealthRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.animalId) searchParams.append('animalId', params.animalId);
@@ -501,6 +505,7 @@ class ApiService {
 
   // Financial API methods
   async getFinancialRecords(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     type?: string;
@@ -509,6 +514,7 @@ class ApiService {
     endDate?: string;
   }): Promise<PaginatedResponse<FinancialRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.type) searchParams.append('type', params.type);
@@ -530,12 +536,14 @@ class ApiService {
 
   // Feeding API methods
   async getFeedRecords(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     type?: string;
     lowStock?: boolean;
   }): Promise<PaginatedResponse<FeedRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.type) searchParams.append('type', params.type);
@@ -555,12 +563,14 @@ class ApiService {
 
   // Breeding API methods
   async getBreedingRecords(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     species?: string;
     status?: string;
   }): Promise<PaginatedResponse<BreedingRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.species) searchParams.append('species', params.species);
@@ -580,6 +590,7 @@ class ApiService {
 
   // RFID API methods
   async getRFIDRecords(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     status?: string;
@@ -587,6 +598,7 @@ class ApiService {
     lowBattery?: boolean;
   }): Promise<PaginatedResponse<RFIDRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.status) searchParams.append('status', params.status);
@@ -607,6 +619,7 @@ class ApiService {
 
   // Tasks API methods
   async getTasks(params?: {
+    tenantId?: string;
     page?: number;
     limit?: number;
     status?: string;
@@ -615,6 +628,7 @@ class ApiService {
     assignedTo?: string;
   }): Promise<PaginatedResponse<TaskRecord>> {
     const searchParams = new URLSearchParams();
+    if (params?.tenantId) searchParams.append('tenantId', params.tenantId);
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.status) searchParams.append('status', params.status);

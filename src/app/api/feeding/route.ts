@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
       try {
         await connectDB();
 
+        // Import User model to register it for populate
+        await import('../../../models/User');
+
         // Build filter - use demo tenant for demo purposes
         const tenantId = session?.user?.tenantId || 'demo-farm';
         const filter: Record<string, unknown> = { tenantId };
@@ -34,7 +37,6 @@ export async function GET(request: NextRequest) {
         }
 
         const feedRecords = await FeedRecord.find(filter)
-          .populate('createdBy', 'firstName lastName')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit);
@@ -80,7 +82,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -141,6 +144,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

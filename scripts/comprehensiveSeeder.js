@@ -1,20 +1,21 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Import models
-const Animal = require('../dist/src/models/Animal').default;
-const HealthRecord = require('../dist/src/models/HealthRecord').default;
-const FinancialRecord = require('../dist/src/models/FinancialRecord').default;
-const FeedRecord = require('../dist/src/models/FeedRecord').default;
-const BreedingRecord = require('../dist/src/models/BreedingRecord').default;
-const Task = require('../dist/src/models/Task').default;
-const RFIDRecord = require('../dist/src/models/RFIDRecord').default;
-const User = require('../dist/src/models/User').default;
+import Animal from '../src/models/Animal.ts';
+import HealthRecord from '../src/models/HealthRecord.ts';
+import FinancialRecord from '../src/models/FinancialRecord.ts';
+import FeedRecord from '../src/models/FeedRecord.ts';
+import BreedingRecord from '../src/models/BreedingRecord.ts';
+import Task from '../src/models/Task.ts';
+import RFIDRecord from '../src/models/RFIDRecord.ts';
+import User from '../src/models/User.ts';
 
 // Connect to MongoDB
 const connectDB = async () => {
   try {
     // Load environment variables
-    require('dotenv').config({ path: '.env.local' });
+    const dotenv = await import('dotenv');
+    dotenv.config({ path: '.env.local' });
 
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/agriintelv3';
     await mongoose.connect(mongoUri);
@@ -272,7 +273,7 @@ const generateHealthRecords = async (animals, tenantId, userId) => {
         tests: [],
         followUp: {
           required: Math.random() > 0.7,
-          date: Math.random() > 0.5 ? dataGenerators.randomPastDate(30) + 30 * 24 * 60 * 60 * 1000 : undefined,
+          date: Math.random() > 0.5 ? new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000) : undefined, // Future date within 30 days
           instructions: 'Monitor for any adverse reactions'
         },
         cost: {
@@ -433,7 +434,7 @@ const generateFeedRecords = async (tenantId, userId) => {
     maxStock: 2000,
     costPerUnit: feed.costPerKg,
     supplier: suppliers[Math.floor(Math.random() * suppliers.length)],
-    expiryDate: dataGenerators.randomPastDate(180) + 365 * 24 * 60 * 60 * 1000, // 1 year from now
+    expiryDate: new Date(Date.now() + (180 + Math.random() * 365) * 24 * 60 * 60 * 1000), // 6 months to 1.5 years from now
     quality: ['premium', 'standard', 'basic'][Math.floor(Math.random() * 3)],
     nutritionalValue: {
       protein: Math.floor(Math.random() * 25) + 5,
@@ -555,18 +556,32 @@ const generateTaskRecords = async (animals, tenantId, userId) => {
 };
 
 // Main seeder function
-const seedDatabase = async () => {
+const seedDatabase = async (args = []) => {
   try {
     await connectDB();
 
     // Check if data already exists
     const existingAnimals = await Animal.countDocuments();
-    if (existingAnimals > 10) {
+    if (existingAnimals > 10 && !args.includes('--force')) {
       console.log('⚠️  Database already contains significant data. Use --force to reseed.');
       return;
     }
 
-    console.log('🚀 Starting comprehensive database seeding...');
+    if (args.includes('--force')) {
+      console.log('🗑️  Force seeding: clearing existing data...');
+      await Promise.all([
+        Animal.deleteMany({}),
+        HealthRecord.deleteMany({}),
+        FinancialRecord.deleteMany({}),
+        FeedRecord.deleteMany({}),
+        BreedingRecord.deleteMany({}),
+        Task.deleteMany({}),
+        RFIDRecord.deleteMany({})
+      ]);
+      console.log('✅ Existing data cleared');
+    }
+
+    console.log(' Starting comprehensive database seeding...');
 
     // Get or create a user for seeding
     let user = await User.findOne({ role: 'admin' });
@@ -633,7 +648,7 @@ if (require.main === module) {
   if (args.includes('--force')) {
     console.log('⚠️  Force seeding enabled');
   }
-  seedDatabase();
+  seedDatabase(args);
 }
 
-module.exports = { seedDatabase };
+export { seedDatabase };

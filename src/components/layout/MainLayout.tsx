@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useLanguageStore } from '@/stores/language-store';
 import {
   HomeIcon,
@@ -91,6 +92,16 @@ export default function MainLayout() {
                   <span>{translate(`nav.${tab.id}`, tab.label)}</span>
                 </motion.button>
               ))}
+              <Link href="/auth/login">
+                <motion.button
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: tabs.length * 0.1 }}
+                  className="ml-4 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+                >
+                  Login
+                </motion.button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -135,6 +146,16 @@ export default function MainLayout() {
                       <span>{translate(`nav.${tab.id}`, tab.label)}</span>
                     </motion.button>
                   ))}
+                  <Link href="/auth/login">
+                    <motion.button
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: tabs.length * 0.1 }}
+                      className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-center"
+                    >
+                      Login
+                    </motion.button>
+                  </Link>
                 </div>
               </motion.div>
             )}

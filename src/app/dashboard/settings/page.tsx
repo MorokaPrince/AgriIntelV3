@@ -25,6 +25,8 @@ import {
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import { useThemeStore } from '@/stores/theme-store';
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeSelector } from '@/components/ui/ThemeSelector';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -289,6 +291,7 @@ const recentActivity = [
 
 export default function SettingsPage() {
   const { user } = useAuthStore();
+  const { themeMode, setThemeMode } = useTheme();
   const { theme, setTheme } = useThemeStore();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
@@ -732,20 +735,25 @@ export default function SettingsPage() {
                         ].map((themeOption) => (
                           <button
                             key={themeOption.id}
-                            onClick={() => setTheme(themeOption.id)}
+                            onClick={() => setThemeMode(themeOption.id as 'light' | 'dark')}
                             className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-colors ${
-                              theme.id === themeOption.id
+                              themeMode === themeOption.id
                                 ? 'border-blue-500 bg-blue-50'
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
                             <themeOption.icon className="h-5 w-5 text-gray-600" />
                             <span className="font-medium">{themeOption.name}</span>
-                            {theme.id === themeOption.id && <CheckIcon className="h-4 w-4 text-blue-600 ml-auto" />}
+                            {themeMode === themeOption.id && <CheckIcon className="h-4 w-4 text-blue-600 ml-auto" />}
                           </button>
                         ))}
                       </div>
                     </div>
+
+                    <div className="border border-gray-200 rounded-lg p-6">
+                      <ThemeSelector />
+                    </div>
+
 
                     <div className="border border-gray-200 rounded-lg p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Display Options</h3>

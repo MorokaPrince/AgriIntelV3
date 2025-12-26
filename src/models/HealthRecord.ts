@@ -202,12 +202,10 @@ HealthRecordSchema.index({ tenantId: 1, recordType: 1, date: -1 }); // Records b
 
 // Pre-save middleware to calculate total cost
 HealthRecordSchema.pre('save', function (next) {
-  const record = this as IHealthRecord;
-
-  record.cost.totalCost =
-    record.cost.consultationFee +
-    record.cost.medicationCost +
-    record.cost.testCost;
+  (this as IHealthRecord).cost.totalCost =
+    (this as IHealthRecord).cost.consultationFee +
+    (this as IHealthRecord).cost.medicationCost +
+    (this as IHealthRecord).cost.testCost;
 
   next();
 });

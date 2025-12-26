@@ -24,6 +24,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Pagination from '@/components/common/Pagination';
+import { BreedingProgramsChart } from '@/components/charts/BreedingProgramsChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
 const breedingStats = [
   {
@@ -304,10 +307,38 @@ export default function BreedingPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('programs');
   const [mounted, setMounted] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is on BETA tier
+  const isBetaTier = user?.tier === 'beta';
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Fetch breeding records from API with pagination
+    const fetchBreedingRecords = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/breeding?page=${currentPage}&limit=${recordsPerPage}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.pagination) {
+            setTotalRecords(data.pagination.total || 0);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching breeding records:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBreedingRecords();
+  }, [currentPage, recordsPerPage]);
 
   const filteredPrograms = breedingPrograms.filter(program => {
     const matchesSearch = program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -411,6 +442,23 @@ export default function BreedingPage() {
           ))}
         </div>
 
+        {/* Breeding Programs Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <BreedingProgramsChart
+            data={{
+              successful: [8, 10, 12, 11, 13, 14, 15],
+              pending: [3, 2, 2, 3, 2, 1, 2],
+              failed: [1, 1, 0, 1, 0, 0, 1],
+            }}
+            labels={['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7']}
+            title="Breeding Programs Overview"
+          />
+        </motion.div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
@@ -428,20 +476,34 @@ export default function BreedingPage() {
                     { id: 'programs', label: 'Breeding Programs', icon: HeartIcon },
                     { id: 'cycles', label: 'Breeding Cycles', icon: ArrowPathIcon },
                     { id: 'genetics', label: 'Genetic Analysis', icon: BeakerIcon }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                        activeTab === tab.id
-                          ? 'border-red-500 text-red-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <tab.icon className="h-4 w-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
+                  ].map((tab) => {
+                    const isLocked = isBetaTier && tab.id !== 'programs';
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          if (isLocked) {
+                            setShowUpgradeModal(true);
+                          } else {
+                            setActiveTab(tab.id);
+                          }
+                        }}
+                        disabled={isLocked}
+                        className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all ${
+                          activeTab === tab.id
+                            ? 'border-red-500 text-red-600'
+                            : isLocked
+                            ? 'border-transparent text-gray-400 cursor-not-allowed opacity-50'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4" />
+                        <span>{tab.label}</span>
+                        {isLocked && <span className="text-xs ml-1">🔒</span>}
+                      </button>
+                    );
+                  })}
                 </nav>
               </div>
 
@@ -476,6 +538,20 @@ export default function BreedingPage() {
                             </option>
                           ))}
                         </select>
+                        <ExportButton
+                          data={filteredPrograms.map(program => ({
+                            id: program.id,
+                            name: program.name,
+                            species: program.species,
+                            breed: program.breed,
+                            status: program.status,
+                            successRate: program.successRate,
+                            totalAnimals: program.totalAnimals,
+                            expectedOffspring: program.expectedOffspring
+                          }))}
+                          filename="breeding-programs-export"
+                          title="Breeding Programs"
+                        />
                       </div>
                     </div>
 
@@ -564,6 +640,20 @@ export default function BreedingPage() {
                         </motion.div>
                       ))}
                     </div>
+
+                    {/* Pagination for Programs */}
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(totalRecords / recordsPerPage)}
+                      totalRecords={totalRecords}
+                      recordsPerPage={recordsPerPage}
+                      onPageChange={setCurrentPage}
+                      onRecordsPerPageChange={(limit) => {
+                        setRecordsPerPage(limit);
+                        setCurrentPage(1);
+                      }}
+                      isLoading={isLoading}
+                    />
                   </div>
                 )}
 
@@ -818,6 +908,45 @@ export default function BreedingPage() {
       >
         <div className="p-6">
           <p className="text-gray-600">Breeding program form will be implemented here.</p>
+        </div>
+      </Modal>
+
+      {/* Upgrade Modal for BETA Tier */}
+      <Modal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        title="Upgrade to Access Premium Features"
+        size="md"
+      >
+        <div className="p-6 space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-900">
+              This feature is only available in Professional and Enterprise tiers.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900">Upgrade Benefits:</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Access to Breeding Cycles tracking
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Advanced Genetic Analysis
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Unlimited records per module
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-600">✓</span> Multi-user access
+              </li>
+            </ul>
+          </div>
+          <button
+            type="button"
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-medium py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+          >
+            Upgrade Now
+          </button>
         </div>
       </Modal>
     </DashboardLayout>

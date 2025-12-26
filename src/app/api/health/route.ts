@@ -1,129 +1,112 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Session } from 'next-auth';
-import { withAuth } from '../../../middleware/auth';
-import connectDB from '../../../lib/mongodb';
-import HealthRecord from '../../../models/HealthRecord';
+import mongoose from 'mongoose';
+import connectDB from '@/lib/mongodb';
 
-// GET /api/health - Get all health records for the authenticated user's tenant
+// Simple health check endpoint
 export async function GET(request: NextRequest) {
-  return withAuth(
-    request,
-    async (_request: NextRequest, session: Session | null) => {
-      try {
-        await connectDB();
-
-        // Build filter - use demo tenant for demo purposes
-        const tenantId = session?.user?.tenantId || 'demo-farm';
-        const filter: Record<string, unknown> = { tenantId };
-
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '48');
-        const animalId = searchParams.get('animalId');
-        const severity = searchParams.get('severity');
-        const status = searchParams.get('status');
-
-        const skip = (page - 1) * limit;
-
-        if (animalId) {
-          filter.animalId = animalId;
+  try {
+    // Ensure database connection
+    await connectDB();
+    
+    // Check database connection
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    
+    // Check memory usage
+    const memoryUsage = process.memoryUsage();
+    
+    // Check uptime
+    const uptime = process.uptime();
+    
+    // Check environment
+    const environment = process.env.NODE_ENV || 'development';
+    
+    const healthData = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: {
+        status: dbStatus,
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host,
+        name: mongoose.connection.name,
+        port: mongoose.connection.port
+      },
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        uptime: `${Math.floor(uptime / 60)} minutes`,
+        memory: {
+          used: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
+          total: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
+          external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`
         }
-
-        if (severity) {
-          filter.severity = severity;
-        }
-
-        if (status) {
-          filter.status = status;
-        }
-
-        const healthRecords = await HealthRecord.find(filter)
-          .populate('animalId', 'name species breed')
-          .populate('createdBy', 'firstName lastName')
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit);
-
-        const total = await HealthRecord.countDocuments(filter);
-
-        return NextResponse.json({
-          success: true,
-          data: healthRecords,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit),
-          },
-        });
-      } catch (error) {
-        console.error('Error fetching health records:', error);
-        return NextResponse.json(
-          { error: 'Failed to fetch health records' },
-          { status: 500 }
-        );
+      },
+      application: {
+        environment,
+        version: process.env.npm_package_version || '0.1.0',
+        buildTime: new Date().toISOString()
+      },
+      checks: {
+        database: dbStatus === 'connected',
+        memory: memoryUsage.heapUsed < 500 * 1024 * 1024, // Less than 500MB
+        uptime: uptime > 60 // More than 1 minute
       }
-    }
-  );
+    };
+
+    // Determine overall health status
+    const isHealthy = Object.values(healthData.checks).every(check => check === true);
+    
+    return NextResponse.json(healthData, {
+      status: isHealthy ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    
+    const errorResponse = {
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      checks: {
+        database: false,
+        memory: false,
+        uptime: false
+      }
+    };
+
+    return NextResponse.json(errorResponse, { status: 503 });
+  }
 }
 
-// POST /api/health - Create a new health record
+// Database connection test endpoint
 export async function POST(request: NextRequest) {
-  return withAuth(
-    request,
-    async (_request: NextRequest, session: Session | null) => {
-      // Additional permission check for write operations
-      if (session?.user?.role && !['admin', 'manager', 'veterinarian'].includes(session.user.role)) {
-        return NextResponse.json(
-          { error: 'Insufficient permissions to create health records' },
-          { status: 403 }
-        );
-      }
-      try {
-        await connectDB();
-
-        const body = await request.json();
-
-        // Validate required fields
-        const requiredFields = ['animalId', 'condition', 'severity', 'treatment', 'veterinarian'];
-        for (const field of requiredFields) {
-          if (!body[field]) {
-            return NextResponse.json(
-              { error: `${field} is required` },
-              { status: 400 }
-            );
-          }
-        }
-
-        // Create new health record - use demo user for demo purposes
-        const userId = session?.user?.id || 'demo-user';
-        const tenantId = session?.user?.tenantId || 'demo-farm';
-
-        const healthRecord = new HealthRecord({
-          ...body,
-          tenantId,
-          createdBy: userId,
-        });
-
-        const savedRecord = await healthRecord.save();
-
-        // Populate the saved record
-        const populatedRecord = await HealthRecord.findById(savedRecord._id)
-          .populate('animalId', 'name species breed')
-          .populate('createdBy', 'firstName lastName');
-
-        return NextResponse.json({
-          success: true,
-          data: populatedRecord,
-          message: 'Health record created successfully',
-        }, { status: 201 });
-      } catch (error) {
-        console.error('Error creating health record:', error);
-        return NextResponse.json(
-          { error: 'Failed to create health record' },
-          { status: 500 }
-        );
-      }
+  try {
+    // Test database connection
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI || '');
     }
-  );
+    
+    // Test a simple operation
+    const collections = mongoose.connection.db ? 
+      await mongoose.connection.db.listCollections().toArray() : [];
+    
+    return NextResponse.json({
+      status: 'success',
+      message: 'Database connection test passed',
+      collections: collections.length,
+      collectionNames: collections.map(c => c.name)
+    });
+  } catch (error) {
+    console.error('Database test failed:', error);
+    
+    return NextResponse.json({
+      status: 'error',
+      message: 'Database connection test failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
 }

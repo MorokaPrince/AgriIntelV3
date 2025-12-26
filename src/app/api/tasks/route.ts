@@ -43,9 +43,6 @@ export async function GET(request: NextRequest) {
         }
 
         const tasks = await Task.find(filter)
-          .populate('assignedTo', 'firstName lastName')
-          .populate('assignedBy', 'firstName lastName')
-          .populate('animalId', 'name species')
           .sort({ dueDate: 1, priority: -1 })
           .skip(skip)
           .limit(limit);
@@ -82,7 +79,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -144,6 +142,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

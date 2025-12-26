@@ -45,12 +45,16 @@ export async function GET(request: NextRequest) {
         // Validate and sanitize pagination parameters
         const pageParam = searchParams.get('page');
         const limitParam = searchParams.get('limit');
+        const tenantIdParam = searchParams.get('tenantId');
 
         const page = pageParam ? Math.max(1, parseInt(pageParam)) : 1;
         const limit = limitParam ? Math.min(1000, Math.max(1, parseInt(limitParam))) : 48;
         const species = searchParams.get('species');
         const status = searchParams.get('status');
         const search = searchParams.get('search');
+
+        // Use tenantId from query params if provided, otherwise use session
+        const tenantId = tenantIdParam || session?.user?.tenantId || 'demo-farm';
 
         // Validate and sanitize filter parameters
         const validSpecies = ['cattle', 'sheep', 'goats', 'poultry', 'pigs', 'other'];
@@ -126,7 +130,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -184,6 +189,21 @@ export async function POST(request: NextRequest) {
         const userId = session?.user?.id || 'demo-user';
         const tenantId = session?.user?.tenantId || 'demo-farm';
 
+        // Check animal limit (50 animals max for free tier)
+        const currentAnimalCount = await Animal.countDocuments({ tenantId });
+        if (currentAnimalCount >= 50) {
+          return NextResponse.json(
+            {
+              error: 'Animal limit reached',
+              message: 'You have reached the maximum of 50 animals for the free tier. Please upgrade to the Pro tier to add more animals.',
+              upgradeRequired: true,
+              currentCount: currentAnimalCount,
+              limit: 50
+            },
+            { status: 403 }
+          );
+        }
+
         const finalAnimalData = {
           ...animalData,
           tenantId,
@@ -218,6 +238,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const path = require('path');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import path from 'path';
 
 // Load environment variables
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
@@ -8,14 +8,14 @@ dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/agriintelv3';
 
 // Import models
-const Animal = require('../dist/src/models/Animal').default;
-const HealthRecord = require('../dist/src/models/HealthRecord').default;
-const FinancialRecord = require('../dist/src/models/FinancialRecord').default;
-const FeedRecord = require('../dist/src/models/FeedRecord').default;
-const BreedingRecord = require('../dist/src/models/BreedingRecord').default;
-const Task = require('../dist/src/models/Task').default;
-const RFIDRecord = require('../dist/src/models/RFIDRecord').default;
-const User = require('../dist/src/models/User').default;
+import Animal from '../dist/src/models/Animal.js';
+import HealthRecord from '../dist/src/models/HealthRecord.js';
+import FinancialRecord from '../dist/src/models/FinancialRecord.js';
+import FeedRecord from '../dist/src/models/FeedRecord.js';
+import BreedingRecord from '../dist/src/models/BreedingRecord.js';
+import Task from '../dist/src/models/Task.js';
+import RFIDRecord from '../dist/src/models/RFIDRecord.js';
+import User from '../dist/src/models/User.js';
 
 async function verifySeeding() {
   try {
@@ -123,4 +123,4 @@ if (require.main === module) {
   verifySeeding();
 }
 
-module.exports = { verifySeeding };
+export { verifySeeding };

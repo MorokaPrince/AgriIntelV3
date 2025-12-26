@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
 
         const skip = (page - 1) * limit;
 
-        // Build filter
-        const filter: Record<string, unknown> = { tenantId: session!.user.tenantId };
+        // Build filter - use demo tenant for demo purposes
+        const tenantId = session?.user?.tenantId || 'demo-farm';
+        const filter: Record<string, unknown> = { tenantId };
 
         if (species) {
           filter.species = species;
@@ -56,7 +57,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

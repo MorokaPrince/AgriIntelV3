@@ -6,14 +6,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { useAuthStore } from '@/stores/auth-store';
+import { signIn, useSession } from 'next-auth/react';
 import { useLanguageStore } from '@/stores/language-store';
 import toast from 'react-hot-toast';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
   // const { translate } = useLanguageStore(); // Not currently used
 
   const [formData, setFormData] = useState({
@@ -22,18 +22,19 @@ function LoginForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setMounted(true);
-    clearError();
-  }, [clearError]);
+  }, []);
 
   useEffect(() => {
-    if (mounted && isAuthenticated) {
+    if (mounted && status === 'authenticated') {
       const redirect = searchParams.get('redirect') || '/dashboard';
       router.push(redirect);
     }
-  }, [mounted, isAuthenticated, router, searchParams]);
+  }, [mounted, status, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,14 +44,29 @@ function LoginForm() {
       return;
     }
 
-    try {
-      await login(formData.email, formData.password);
-      toast.success('Login successful!');
+    setIsLoading(true);
+    setError('');
 
-      const redirect = searchParams.get('redirect') || '/dashboard';
-      router.push(redirect);
+    try {
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+        toast.error('Login failed');
+      } else {
+        toast.success('Login successful!');
+        const redirect = searchParams.get('redirect') || '/dashboard';
+        router.push(redirect);
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
+      setError('Login failed');
+      toast.error('Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -2,27 +2,1605 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced Agricultural Theme - Sophisticated Natural Earth Tones */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Enhanced Background System */
+  --background: #0f2410;
+  --foreground: #f5deb3;
+  --primary: #2d5016;
+  --primary-light: #4a7c59;
+  --primary-dark: #0f2410;
+  --secondary: #8b4513;
+  --secondary-light: #a0522d;
+  --secondary-dark: #654321;
+  --accent: #d2691e;
+  --accent-light: #cd853f;
+  --accent-dark: #a0522d;
+  --success: #228b22;
+  --warning: #daa520;
+  --danger: #dc143c;
+  --info: #4682b4;
+  
+  /* Sophisticated Agricultural Color Palette */
+  --forest-deep: #0f2410;
+  --forest-medium: #2d5016;
+  --forest-light: #4a7c59;
+  --earth-terracotta: #cd853f;
+  --earth-sienna: #a0522d;
+  --earth-brown: #8b4513;
+  --wheat-cream: #f5deb3;
+  --sage-light: #9caf88;
+  --sage-medium: #7c9a6d;
+  --gold-harvest: #daa520;
+  --amber-warm: #ffbf00;
+  --olive-natural: #6b8e23;
+  
+  /* Enhanced Glassmorphism Variables */
+  --glass-forest: rgba(45, 80, 22, 0.15);
+  --glass-terracotta: rgba(205, 133, 63, 0.15);
+  --glass-sage: rgba(156, 175, 136, 0.15);
+  --glass-wheat: rgba(245, 222, 179, 0.15);
+  
+  /* Advanced Shadow System */
+  --shadow-soft: 0 4px 12px rgba(139, 69, 19, 0.1);
+  --shadow-medium: 0 8px 24px rgba(139, 69, 19, 0.15);
+  --shadow-strong: 0 12px 36px rgba(139, 69, 19, 0.2);
+  
+  /* Border System */
+  --border-primary: rgba(245, 222, 179, 0.2);
+  --border-secondary: rgba(156, 175, 136, 0.3);
+  --border-accent: rgba(205, 133, 63, 0.4);
+  
+  /* Enhanced Gradients */
+  --agricultural-gradient: linear-gradient(135deg, #2d5016 0%, #4a7c59 50%, #6b8e23 100%);
+  --gradient-forest-primary: linear-gradient(135deg, #0f2410 0%, #2d5016 25%, #4a7c59 50%, #7c9a6d 75%, #f5deb3 100%);
+  --gradient-earth-warm: linear-gradient(135deg, #8b4513 0%, #a0522d 25%, #cd853f 50%, #daa520 75%, #ffbf00 100%);
+  --gradient-sage-subtle: linear-gradient(135deg, rgba(124, 154, 109, 0.1) 0%, rgba(156, 175, 136, 0.15) 25%, rgba(156, 175, 136, 0.2) 50%, rgba(124, 154, 109, 0.15) 75%, rgba(124, 154, 109, 0.1) 100%);
+  
+  /* Semantic Color Mapping */
+  --success-agriculture: #228b22;
+  --warning-harvest: #daa520;
+  --error-natural: #dc143c;
+  --info-sky: #4682b4;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Global CSS Variables and Theme Configuration */
+
+/* Dark Mode Support - Agricultural Theme */
+.dark {
+  --background: #1a1f1a;
+  --foreground: #f5f5dc;
+  --primary: #6b8e23;
+  --primary-light: #9acd32;
+  --primary-dark: #556b2f;
+  --secondary: #8b4513;
+  --secondary-light: #a0522d;
+  --secondary-dark: #654321;
+  --accent: #cd853f;
+  --accent-light: #daa520;
+  --accent-dark: #b8860b;
+  --success: #228b22;
+  --warning: #daa520;
+  --danger: #dc143c;
+  --info: #4682b4;
+  --terracotta: #a0522d;
+  --wheat: #deb887;
+  --sage: #7c9a6d;
+  --forest-green: #0f280f;
 }
+
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: #1a1f1a;
+    --foreground: #f5f5dc;
+    --primary: #6b8e23;
+    --primary-light: #9acd32;
+    --primary-dark: #556b2f;
+    --secondary: #8b4513;
+    --secondary-light: #a0522d;
+    --secondary-dark: #654321;
+    --accent: #cd853f;
+    --accent-light: #daa520;
+    --accent-dark: #b8860b;
+    --success: #228b22;
+    --warning: #daa520;
+    --danger: #dc143c;
+    --info: #4682b4;
+    --terracotta: #a0522d;
+    --wheat: #deb887;
+    --sage: #7c9a6d;
+    --forest-green: #0f280f;
   }
 }
 
+/* Enhanced Body Styles with Sophisticated Agricultural Theme */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--forest-deep);
+  color: var(--wheat-cream);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(107, 142, 35, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(15, 36, 16, 0.95) 0%, rgba(45, 80, 22, 0.98) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
+
+/* Agricultural Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(139, 69, 19, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: 10px;
+  border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+}
+
+/* Advanced Agricultural Animation System */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes agriculturalHover {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow: var(--shadow-soft);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-medium);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(139, 69, 19, 0.4); 
+  }
+  50% { 
+    box-shadow: 0 0 0 15px rgba(139, 69, 19, 0); 
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Advanced Agricultural Glassmorphism Effects */
+.glassmorphism-sage {
+  background: rgba(156, 175, 136, 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(156, 175, 136, 0.25);
+  box-shadow: 
+    0 6px 24px rgba(139, 69, 19, 0.12),
+    inset 0 1px 0 rgba(156, 175, 136, 0.2);
+  border-radius: 16px;
+}
+
+.glassmorphism-terracotta {
+  background: rgba(205, 133, 63, 0.12);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(205, 133, 63, 0.25);
+  box-shadow: 
+    0 8px 32px rgba(139, 69, 19, 0.15),
+    inset 0 1px 0 rgba(205, 133, 63, 0.3);
+  border-radius: 16px;
+}
+
+.glassmorphism-wheat {
+  background: rgba(245, 222, 179, 0.12);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(245, 222, 179, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(139, 69, 19, 0.15),
+    inset 0 1px 0 rgba(245, 222, 179, 0.4);
+  border-radius: 16px;
+}
+
+.glassmorphism-forest {
+  background: rgba(45, 80, 22, 0.12);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(45, 80, 22, 0.25);
+  box-shadow: 
+    0 6px 24px rgba(139, 69, 19, 0.12),
+    inset 0 1px 0 rgba(45, 80, 22, 0.2);
+  border-radius: 16px;
+}
+
+/* Enhanced Glassmorphism System */
+.glassmorphism-agricultural-primary {
+  background: rgba(245, 222, 179, 0.12);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(245, 222, 179, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(139, 69, 19, 0.15),
+    inset 0 1px 0 rgba(245, 222, 179, 0.3);
+  border-radius: 20px;
+}
+
+.glassmorphism-agricultural-secondary {
+  background: rgba(156, 175, 136, 0.12);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(156, 175, 136, 0.25);
+  box-shadow: 
+    0 6px 24px rgba(139, 69, 19, 0.12),
+    inset 0 1px 0 rgba(156, 175, 136, 0.2);
+  border-radius: 20px;
+}
+
+.glassmorphism-agricultural-tertiary {
+  background: rgba(205, 133, 63, 0.1);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(205, 133, 63, 0.2);
+  box-shadow: 
+    0 4px 16px rgba(139, 69, 19, 0.1),
+    inset 0 1px 0 rgba(205, 133, 63, 0.15);
+  border-radius: 16px;
+}
+
+/* Advanced Agricultural Earth Tone Overlays */
+.earth-overlay-sage {
+  background: linear-gradient(135deg, 
+    rgba(124, 154, 109, 0.15) 0%, 
+    rgba(156, 175, 136, 0.2) 25%, 
+    rgba(156, 175, 136, 0.25) 50%, 
+    rgba(124, 154, 109, 0.2) 75%, 
+    rgba(124, 154, 109, 0.15) 100%);
+  border-radius: 16px;
+}
+
+.earth-overlay-terracotta {
+  background: linear-gradient(135deg, 
+    rgba(139, 69, 19, 0.15) 0%, 
+    rgba(160, 82, 45, 0.2) 25%, 
+    rgba(205, 133, 63, 0.25) 50%, 
+    rgba(160, 82, 45, 0.2) 75%, 
+    rgba(139, 69, 19, 0.15) 100%);
+  border-radius: 16px;
+}
+
+.earth-overlay-wheat {
+  background: linear-gradient(135deg, 
+    rgba(245, 222, 179, 0.12) 0%, 
+    rgba(218, 165, 32, 0.18) 25%, 
+    rgba(218, 165, 32, 0.22) 50%, 
+    rgba(245, 222, 179, 0.18) 75%, 
+    rgba(245, 222, 179, 0.12) 100%);
+  border-radius: 16px;
+}
+
+.earth-overlay-forest {
+  background: linear-gradient(135deg, 
+    rgba(15, 36, 16, 0.2) 0%, 
+    rgba(45, 80, 22, 0.25) 25%, 
+    rgba(45, 80, 22, 0.3) 50%, 
+    rgba(15, 36, 16, 0.25) 75%, 
+    rgba(15, 36, 16, 0.2) 100%);
+  border-radius: 16px;
+}
+
+/* Agricultural Color Utilities */
+.text-wheat { color: var(--wheat-cream); }
+.text-terracotta { color: var(--earth-terracotta); }
+.text-gold { color: var(--gold-harvest); }
+.text-sage { color: var(--sage-light); }
+.text-forest-green { color: var(--forest-medium); }
+.text-forest-deep { color: var(--forest-deep); }
+.bg-wheat { background-color: var(--wheat-cream); }
+.bg-terracotta { background-color: var(--earth-terracotta); }
+.bg-gold { background-color: var(--gold-harvest); }
+.bg-sage { background-color: var(--sage-light); }
+.bg-forest-green { background-color: var(--forest-medium); }
+.bg-forest-deep { background-color: var(--forest-deep); }
+.border-wheat { border-color: var(--wheat-cream); }
+.border-terracotta { border-color: var(--earth-terracotta); }
+.border-gold { border-color: var(--gold-harvest); }
+.border-sage { border-color: var(--sage-light); }
+.border-forest-green { border-color: var(--forest-medium); }
+.border-forest-deep { border-color: var(--forest-deep); }
+
+/* Enhanced Agricultural Gradient System */
+.bg-agricultural-gradient {
+  background: var(--agricultural-gradient);
+}
+
+.gradient-forest-primary {
+  background: var(--gradient-forest-primary);
+}
+
+.gradient-earth-warm {
+  background: var(--gradient-earth-warm);
+}
+
+.gradient-sage-subtle {
+  background: var(--gradient-sage-subtle);
+}
+
+/* Advanced Gradient Animations */
+.gradient-animated-agricultural {
+  background: linear-gradient(-45deg, 
+    var(--forest-deep), 
+    var(--earth-terracotta), 
+    var(--gold-harvest), 
+    var(--sage-light));
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Agricultural Card Gradients */
+.gradient-card-primary {
+  background: linear-gradient(135deg, 
+    rgba(245, 222, 179, 0.15) 0%, 
+    rgba(156, 175, 136, 0.1) 50%, 
+    rgba(245, 222, 179, 0.15) 100%);
+}
+
+.gradient-card-secondary {
+  background: linear-gradient(135deg, 
+    rgba(205, 133, 63, 0.12) 0%, 
+    rgba(139, 69, 19, 0.08) 50%, 
+    rgba(205, 133, 63, 0.12) 100%);
+}
+
+.gradient-card-tertiary {
+  background: linear-gradient(135deg, 
+    rgba(45, 80, 22, 0.12) 0%, 
+    rgba(74, 124, 89, 0.08) 50%, 
+    rgba(45, 80, 22, 0.12) 100%);
+}
+
+/* Advanced Agricultural Button System */
+.btn-agricultural-primary {
+  background: linear-gradient(135deg, 
+    var(--forest-medium) 0%, 
+    var(--earth-terracotta) 50%, 
+    var(--forest-medium) 100%);
+  color: var(--wheat-cream);
+  border: 1px solid var(--earth-terracotta);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-agricultural-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(245, 222, 179, 0.3) 50%, 
+    transparent 100%);
+  transition: left 0.5s ease;
+}
+
+.btn-agricultural-primary:hover::before {
+  left: 100%;
+}
+
+.btn-agricultural-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--gold-harvest);
+}
+
+.btn-agricultural-secondary {
+  background: var(--glass-sage);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--wheat-cream);
+  border: 1px solid var(--border-secondary);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-agricultural-secondary:hover {
+  background: var(--glass-wheat);
+  border-color: var(--earth-terracotta);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-agricultural-tertiary {
+  background: linear-gradient(45deg, 
+    rgba(245, 222, 179, 0.1) 0%, 
+    rgba(156, 175, 136, 0.15) 100%);
+  color: var(--wheat-cream);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.btn-agricultural-tertiary:hover {
+  background: linear-gradient(45deg, 
+    rgba(205, 133, 63, 0.2) 0%, 
+    rgba(218, 165, 32, 0.2) 100%);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+/* Metallic Utility Classes */
+.metallic-gradient {
+  background: var(--metallic-gradient);
+}
+
+.metallic-gradient-dark {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.gradient-animation {
+  background: var(--metallic-gradient);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Agricultural Card System */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  animation: agriculturalHover 0.6s ease;
+  box-shadow: var(--shadow-strong) !important;
+}
+
+/* Agricultural Card Enhancements */
+.card-agricultural {
+  background: var(--glass-forest);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-agricultural::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at top left, rgba(205, 133, 63, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at bottom right, rgba(218, 165, 32, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-agricultural:hover::before {
+  opacity: 1;
+}
+
+.card-agricultural:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-strong);
+  border-color: var(--border-accent);
+}
+
+/* Dashboard Specific Styles with Metallic Blue Theme */
+.dashboard-container {
+  background: linear-gradient(180deg, var(--background) 0%, rgba(245, 247, 250, 0.8) 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%232b6cb0" opacity="0.1"/></svg>');
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Metallic Blue Metric Card Enhancements */
+.metric-card {
+  background: var(--background);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.metric-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(43, 108, 176, 0.1), 0 10px 10px -5px rgba(43, 108, 176, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Metallic Blue Button Enhancements */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
+}
+
+/* Metallic Blue Loading Animation */
+.loading-spinner {
+  border: 3px solid rgba(43, 108, 176, 0.1);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .metric-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Metallic Blue Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  margin-bottom: 1.25rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+
+p {
+  line-height: 1.6;
+  color: rgba(var(--foreground), 0.8);
+  margin-bottom: 1rem;
+}
+
+/* Metallic Blue Section Styling */
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--primary-light);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--secondary);
+  border-radius: 2px;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: rgba(var(--foreground), 0.7);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+/* Card Layout Improvements */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(43, 108, 176, 0.05);
+  margin-bottom: 1rem;
+}
+
+.card-body {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(43, 108, 176, 0.05);
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Metallic Blue Stat Display Enhancements */
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: rgba(var(--foreground), 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.stat-change {
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.stat-change.positive {
+  color: var(--success);
+}
+
+.stat-change.negative {
+  color: var(--danger);
+}
+
+.stat-change::before {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  margin-right: 0.25rem;
+}
+
+.stat-change.positive::before {
+  border-width: 0 4px 4px 4px;
+  border-color: transparent transparent var(--success) transparent;
+}
+
+.stat-change.negative::before {
+  border-width: 4px 4px 0 4px;
+  border-color: var(--danger) transparent transparent transparent;
+}
+
+/* Dashboard Layout Improvements */
+.dashboard-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(43, 108, 176, 0.1);
+}
+
+.dashboard-metrics {
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-charts {
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-details {
+  margin-bottom: 2rem;
+}
+
+/* Metallic Blue Navigation Improvements */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: rgba(var(--foreground), 0.8);
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(var(--primary), 0.1);
+  color: var(--primary);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(43, 108, 176, 0.1);
+}
+
+/* Button Group Styling */
+.button-group {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(43, 108, 176, 0.1);
+}
+
+.button-group .btn {
+  border-radius: 0;
+  border-right: 1px solid rgba(43, 108, 176, 0.1);
+}
+
+.button-group .btn:first-child {
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+
+.button-group .btn:last-child {
+  border-radius: 0 8px 8px 0;
+  border-right: none;
+}
+
+/* Metallic Blue Alert and Notification Styling */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-left: 4px solid;
+}
+
+.alert-success {
+  background: rgba(var(--success), 0.1);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.alert-warning {
+  background: rgba(var(--warning), 0.1);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.alert-danger {
+  background: rgba(var(--danger), 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.alert-info {
+  background: rgba(var(--info), 0.1);
+  border-color: var(--info);
+  color: var(--info);
+}
+
+.alert-icon {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+/* Metallic Blue Progress Bar Styling */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(43, 108, 176, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.75rem 0;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.progress-bar-success {
+  background: var(--success);
+}
+
+.progress-bar-warning {
+  background: var(--warning);
+}
+
+.progress-bar-danger {
+  background: var(--danger);
+}
+
+.progress-bar-info {
+  background: var(--info);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: rgba(var(--foreground), 0.7);
+}
+
+/* Metallic Blue Badge Styling */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.badge-success {
+  background: rgba(var(--success), 0.1);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: rgba(var(--warning), 0.1);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: rgba(var(--danger), 0.1);
+  color: var(--danger);
+}
+
+.badge-info {
+  background: rgba(var(--info), 0.1);
+  color: var(--info);
+}
+
+.badge-primary {
+  background: rgba(var(--primary), 0.1);
+  color: var(--primary);
+}
+
+/* Metallic Blue Table Enhancements */
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(43, 108, 176, 0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: rgba(var(--primary), 0.05);
+  color: var(--primary);
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(43, 108, 176, 0.1);
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(43, 108, 176, 0.05);
+  color: rgba(var(--foreground), 0.8);
+}
+
+.table tr:hover td {
+  background: rgba(43, 108, 176, 0.02);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Metallic Blue Form Enhancements */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: rgba(var(--foreground), 0.8);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: var(--background);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary), 0.1);
+}
+
+.form-control::placeholder {
+  color: rgba(var(--foreground), 0.3);
+}
+
+/* Metallic Blue Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 32, 44, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: var(--background);
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(43, 108, 176, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid rgba(43, 108, 176, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+}
+
+/* Metallic Blue Print Styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none;
+  }
+
+  .dashboard-container {
+    padding: 0;
+  }
+
+  .metric-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+  }
+}
+
+/* Metallic Blue Weather Animations */
+.weather-sunny {
+  position: relative;
+  display: inline-block;
+}
+
+.weather-sunny::before {
+  content: '☀️';
+  animation: sunnyPulse 3s ease-in-out infinite;
+}
+
+@keyframes sunnyPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.weather-rainy {
+  position: relative;
+  display: inline-block;
+}
+
+.weather-rainy::before {
+  content: '🌧️';
+  animation: rainyDrops 2s linear infinite;
+}
+
+@keyframes rainyDrops {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+.weather-cloudy {
+  position: relative;
+  display: inline-block;
+}
+
+.weather-cloudy::before {
+  content: '☁️';
+  animation: cloudyDrift 5s ease-in-out infinite alternate;
+}
+
+@keyframes cloudyDrift {
+  0% { transform: translateX(-5px); }
+  100% { transform: translateX(5px); }
+}
+
+.weather-stormy {
+  position: relative;
+  display: inline-block;
+}
+
+.weather-stormy::before {
+  content: '⛈️';
+  animation: stormyFlash 1s ease-in-out infinite;
+}
+
+@keyframes stormyFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+  25%, 75% { transform: scale(1.1); }
+}
+
+/* Metallic Blue Data Visualization Animations */
+.data-pulse {
+  animation: dataPulse 2s ease-in-out infinite;
+}
+
+@keyframes dataPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(43, 108, 176, 0.2); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(43, 108, 176, 0); }
+}
+
+.chart-animate {
+  animation: chartGrow 1s ease-out;
+}
+
+@keyframes chartGrow {
+  from { opacity: 0; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+/* Metallic Blue Interactive Tooltip */
+.tooltip-interactive {
+  position: relative;
+  cursor: pointer;
+}
+
+.tooltip-interactive::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 32, 44, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(43, 108, 176, 0.2);
+}
+
+.tooltip-interactive:hover::after {
+  opacity: 1;
+}
+
+/* Metallic Blue Progress Bar Animation */
+.progress-animate {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  background-size: 200% 100%;
+  animation: progressFill 2s ease-out;
+}
+
+@keyframes progressFill {
+  from { width: 0; background-position: 100% 0; }
+  to { width: var(--progress-width, 100%); background-position: 0 0; }
+}
+
+/* Metallic Blue Card Flip Animation */
+.card-flip {
+  perspective: 1000px;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.card-flip:hover {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* Metallic Blue Real-time Update Indicators */
+.real-time-indicator {
+  position: relative;
+}
+
+.real-time-indicator::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--danger);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.real-time-success::after {
+  background: var(--success);
+}
+
+.real-time-warning::after {
+  background: var(--warning);
+}
+
+/* Metallic Blue Interactive Chart Elements */
+.chart-point {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.chart-point:hover {
+  transform: scale(1.5);
+  box-shadow: 0 0 0 8px rgba(43, 108, 176, 0.2);
+}
+
+.chart-point::after {
+  content: attr(data-value);
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 32, 44, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.chart-point:hover::after {
+  opacity: 1;
+}
+
+/* Metallic Blue Animated Background Patterns */
+.pattern-dots {
+  background-image: radial-gradient(circle, rgba(43, 108, 176, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.pattern-lines {
+  background-image: linear-gradient(45deg, rgba(43, 108, 176, 0.05) 1px, transparent 1px),
+                    linear-gradient(-45deg, rgba(43, 108, 176, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.pattern-grid {
+  background-image: linear-gradient(rgba(43, 108, 176, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(43, 108, 176, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Metallic Blue Gamification Elements */
+.achievement-badge {
+  position: relative;
+  display: inline-block;
+}
+
+.achievement-badge::before {
+  content: '🏆';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 18px;
+  background: gold;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+  animation: badgeShine 2s ease-in-out infinite;
+}
+
+@keyframes badgeShine {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  50% { transform: rotate(10deg) scale(1.1); opacity: 0.9; }
+}
+
+.progress-milestone {
+  position: relative;
+}
+
+.progress-milestone::after {
+  content: '🎯';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  animation: milestoneBounce 1s ease-out;
+}
+
+@keyframes milestoneBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Multiple Theme Palettes - Blue & Purple Gradients */
+
+/* Ocean Blue Theme */
+.theme-ocean-blue {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #0ea5e9;
+  --theme-accent: #06b6d4;
+  --theme-gradient: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #0891b2 100%);
+}
+
+/* Royal Purple Theme */
+.theme-royal-purple {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #7c3aed;
+  --theme-accent: #a855f7;
+  --theme-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+}
+
+/* Midnight Blue Theme */
+.theme-midnight-blue {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #1e40af;
+  --theme-accent: #3b82f6;
+  --theme-gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+}
+
+/* Electric Purple Theme */
+.theme-electric-purple {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #9333ea;
+  --theme-accent: #c084fc;
+  --theme-gradient: linear-gradient(135deg, #9333ea 0%, #c084fc 50%, #e879f9 100%);
+}
+
+/* Sky Gradient Theme */
+.theme-sky-gradient {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #0284c7;
+  --theme-accent: #38bdf8;
+  --theme-gradient: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #7dd3fc 100%);
+}
+
+/* Cosmic Purple Theme */
+.theme-cosmic-purple {
+  --theme-bg: #ffffff;
+  --theme-surface: #f8fafc;
+  --theme-text: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-primary: #581c87;
+  --theme-accent: #7c3aed;
+  --theme-gradient: linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a855f7 100%);
+}
+
+/* Advanced Agricultural Texture Patterns */
+.texture-grain {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(160, 82, 45, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px, 30px 30px;
+}
+
+.texture-weave {
+  background-image: 
+    linear-gradient(45deg, rgba(139, 69, 19, 0.02) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(139, 69, 19, 0.02) 25%, transparent 25%);
+  background-size: 24px 24px;
+}
+
+.texture-natural {
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 69, 19, 0.02) 0px,
+      rgba(139, 69, 19, 0.02) 1px,
+      transparent 1px,
+      transparent 20px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(160, 82, 45, 0.02) 0px,
+      rgba(160, 82, 45, 0.02) 1px,
+      transparent 1px,
+      transparent 20px
+    );
+}
+
+.texture-subtle {
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(156, 175, 136, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Agricultural Theme Application */
+.agricultural-theme {
+  background: var(--forest-deep);
+  color: var(--wheat-cream);
+}
+
+.agricultural-theme * {
+  background: inherit;
+  color: inherit;
+}
+
+/* Force specific elements to use agricultural backgrounds */
+.agricultural-theme .bg-white,
+.agricultural-theme .bg-gray-50,
+.agricultural-theme .bg-gray-100 {
+  background: var(--glass-forest) !important;
+}
+
+.agricultural-theme .bg-white,
+.agricultural-theme .consistent-card,
+.agricultural-theme .metric-card-consistent,
+.agricultural-theme .page-header-consistent,
+.agricultural-theme .agriintel-content,
+.agricultural-theme .dashboard-container,
+.agricultural-theme .metric-card,
+.agricultural-theme .card-enhanced,
+.agricultural-theme .form-control,
+.agricultural-theme .table,
+.agricultural-theme .modal-content,
+.agricultural-theme .alert,
+.agricultural-theme .badge,
+.agricultural-theme .btn-consistent,
+.agricultural-theme .quick-action-btn {
+  background: var(--glass-wheat) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+}
+
+/* Agricultural Interactive States */
+.hover-agricultural {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-agricultural:hover {
+  animation: agriculturalHover 0.6s ease;
+  box-shadow: var(--shadow-medium);
+}
+
+/* Transition System */
+.transition-agricultural-fast {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-agricultural-medium {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-agricultural-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+

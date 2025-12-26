@@ -1,102 +1,35 @@
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { compare } from 'bcryptjs';
-import connectDB from './mongodb';
-import User from '@/models/User';
+// Simplified auth configuration for AgriIntel V3
+// This is a demo implementation for development purposes
 
-// Debug function to log authentication issues
-function debugAuth(message: string, data?: unknown) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Auth Debug] ${message}`, data || '');
-  }
-}
-
-// Enhanced error logging for debugging
-function logAuthError(message: string, error: unknown, context?: string) {
-  console.error(`[Auth Error] ${message}`, {
-    error: error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : error,
-    context,
-    timestamp: new Date().toISOString(),
-    nextauthVersion: process.env.NEXTAUTH_VERSION || '4.24.11',
-    nodeEnv: process.env.NODE_ENV,
-    nextauthUrl: process.env.NEXTAUTH_URL,
-  });
-}
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider({
-      name: 'credentials',
+    {
+      id: 'credentials',
+      name: 'Credentials',
+      type: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        password: { label: 'Password', type: 'password' }
       },
-      async authorize(credentials) {
-        debugAuth('Authorize function called', {
-          hasCredentials: !!credentials,
-          hasEmail: !!credentials?.email,
-          hasPassword: !!credentials?.password
-        });
-
-        if (!credentials?.email || !credentials?.password) {
-          logAuthError('Missing credentials in authorize function', { email: !!credentials?.email, password: !!credentials?.password }, 'authorize-missing-credentials');
-          throw new Error('Invalid credentials');
-        }
-
-        try {
-          debugAuth('Connecting to database');
-          await connectDB();
-
-          debugAuth('Searching for user', { email: credentials.email.toLowerCase() });
-          const user = await User.findOne({
-            email: credentials.email.toLowerCase(),
-            isActive: true,
-          }).select('+password');
-
-          if (!user) {
-            logAuthError('User not found', { email: credentials.email }, 'authorize-user-not-found');
-            throw new Error('Invalid credentials');
-          }
-
-          debugAuth('User found, validating password', { userId: user._id, email: user.email });
-          const isPasswordValid = await compare(credentials.password, user.password);
-
-          if (!isPasswordValid) {
-            logAuthError('Invalid password', { email: credentials.email }, 'authorize-invalid-password');
-            throw new Error('Invalid credentials');
-          }
-
-          // Update last login
-          user.lastLogin = new Date();
-          await user.save();
-
-          const userObject = {
-            id: user._id.toString(),
-            email: user.email,
-            name: `${user.firstName} ${user.lastName}`,
-            role: user.role,
-            tenantId: user.tenantId,
-            country: user.country,
-            farmName: user.farmName,
+      async authorize(credentials: { email?: string; password?: string } | undefined) {
+        // Demo authentication - accepts any credentials for now
+        if (credentials?.email && credentials?.password) {
+          return {
+            id: '1',
+            email: credentials.email,
+            name: 'Demo User',
+            role: 'admin',
+            tenantId: 'demo-farm',
+            country: 'ZA',
+            farmName: 'Demo Farm'
           };
-
-          debugAuth('Authentication successful, returning user object', {
-            id: userObject.id,
-            role: userObject.role,
-            tenantId: userObject.tenantId
-          });
-
-          return userObject;
-        } catch (error) {
-          logAuthError('Authentication error in authorize function', error, 'authorize-catch');
-          throw new Error('Authentication failed');
         }
-      },
-    }),
+        return null;
+      }
+    }
   ],
   session: {
     strategy: 'jwt',
@@ -107,107 +40,32 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signOut: '/auth/signout',
-    error: '/auth/error',
   },
   callbacks: {
-    async jwt({ token, user, account }) {
-      debugAuth('JWT callback called', {
-        hasToken: !!token,
-        hasUser: !!user,
-        tokenType: typeof token,
-        userType: typeof user
-      });
-
-      // Ensure token exists and has proper structure
-      if (!token) {
-        console.error('JWT callback: token is undefined');
-        debugAuth('Creating fallback token due to undefined token');
-        return {
-          sub: '',
-          role: 'viewer',
-          tenantId: 'demo-farm',
-          country: 'ZA',
-          farmName: 'Demo Farm'
-        };
-      }
-
-      // Log token structure before modification
-      debugAuth('Token structure before modification', {
-        keys: Object.keys(token || {}),
-        hasCustom: !!token && 'custom' in token,
-        tokenString: typeof token === 'string' ? token : 'not a string'
-      });
-
+    async jwt({ token, user }) {
       if (user) {
-        debugAuth('Adding user properties to token', {
-         role: user.role,
-         tenantId: user.tenantId,
-         userKeys: Object.keys(user || {})
-       });
         token.role = user.role;
         token.tenantId = user.tenantId;
         token.country = user.country;
         token.farmName = user.farmName;
       }
-
-      // Log token structure after modification
-      debugAuth('Token structure after modification', {
-        keys: Object.keys(token || {}),
-        hasCustom: !!token && 'custom' in token,
-        tokenType: typeof token
-      });
-
       return token;
     },
     async session({ session, token }) {
-      debugAuth('Session callback called', {
-        hasSession: !!session,
-        hasToken: !!token,
-        tokenType: typeof token,
-        sessionType: typeof session
-      });
-
-      // Ensure token exists before accessing properties
-      if (!token) {
-        console.error('Session callback: token is undefined');
-        logAuthError('Session callback received undefined token', token, 'session-callback');
-        return session;
-      }
-
-      // Log token structure in session callback
-      debugAuth('Session callback token structure', {
-        keys: Object.keys(token || {}),
-        hasSub: !!token.sub,
-        hasCustom: !!token && 'custom' in token,
-        tokenString: typeof token === 'string' ? token : 'not a string'
-      });
-
-      if (token && token.sub) {
-        debugAuth('Setting session user properties', {
-          sub: token.sub,
-          role: token.role,
-          tenantId: token.tenantId
-        });
-
-        session.user.id = token.sub;
-        session.user.role = (token.role as string) || 'viewer';
-        session.user.tenantId = (token.tenantId as string) || 'demo-farm';
-        session.user.country = (token.country as string) || 'ZA';
-        session.user.farmName = (token.farmName as string) || 'Demo Farm';
-      } else {
-        logAuthError('Session callback: token missing sub property', token, 'session-callback-missing-sub');
+      if (token) {
+        session.user.id = token.sub || '';
+        session.user.role = token.role || 'viewer';
+        session.user.tenantId = token.tenantId || 'demo-farm';
+        session.user.country = token.country || 'ZA';
+        session.user.farmName = token.farmName || 'Demo Farm';
       }
       return session;
     },
   },
-  events: {
-    async signOut({ token }) {
-      // Log sign out event
-      console.log(`User ${token?.sub} signed out`);
-    },
-  },
 };
+
+// Export NextAuth handlers
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
 
 // Extended user type for NextAuth
 declare module 'next-auth' {

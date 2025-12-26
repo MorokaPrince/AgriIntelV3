@@ -219,19 +219,17 @@ FinancialRecordSchema.index({ tenantId: 1, 'recurring.nextDueDate': 1 }); // Rec
 
 // Pre-save middleware to calculate tax amount
 FinancialRecordSchema.pre('save', function (next) {
-  const record = this as IFinancialRecord;
-
-  if (record.tax.isTaxable && record.tax.taxRate > 0) {
-    record.tax.taxAmount = (record.amount * record.tax.taxRate) / 100;
+  if ((this as IFinancialRecord).tax.isTaxable && (this as IFinancialRecord).tax.taxRate > 0) {
+    (this as IFinancialRecord).tax.taxAmount = ((this as IFinancialRecord).amount * (this as IFinancialRecord).tax.taxRate) / 100;
   } else {
-    record.tax.taxAmount = 0;
+    (this as IFinancialRecord).tax.taxAmount = 0;
   }
 
   // Set next due date for recurring transactions
-  if (record.recurring.isRecurring && record.recurring.frequency) {
-    const nextDate = new Date(record.date);
+  if ((this as IFinancialRecord).recurring.isRecurring && (this as IFinancialRecord).recurring.frequency) {
+    const nextDate = new Date((this as IFinancialRecord).date);
 
-    switch (record.recurring.frequency) {
+    switch ((this as IFinancialRecord).recurring.frequency) {
       case 'daily':
         nextDate.setDate(nextDate.getDate() + 1);
         break;
@@ -249,7 +247,7 @@ FinancialRecordSchema.pre('save', function (next) {
         break;
     }
 
-    record.recurring.nextDueDate = nextDate;
+    (this as IFinancialRecord).recurring.nextDueDate = nextDate;
   }
 
   next();

@@ -22,6 +22,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Pagination from '@/components/common/Pagination';
+import { FeedingTrendsChart } from '@/components/charts/FeedingTrendsChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
 const feedingStats = [
   {
@@ -297,10 +300,34 @@ export default function FeedingPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('inventory');
   const [mounted, setMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Fetch feeding records from API with pagination
+    const fetchFeedingRecords = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/feeding?page=${currentPage}&limit=${recordsPerPage}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.pagination) {
+            setTotalRecords(data.pagination.total || 0);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching feeding records:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeedingRecords();
+  }, [currentPage, recordsPerPage]);
 
   const filteredInventory = feedInventory.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -400,6 +427,22 @@ export default function FeedingPage() {
           ))}
         </div>
 
+        {/* Feeding Trends Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <FeedingTrendsChart
+            data={{
+              consumption: [180, 185, 190, 188, 192, 195, 200],
+              efficiency: [92, 91, 93, 94, 92, 95, 96],
+            }}
+            labels={['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
+            title="Weekly Feeding Trends"
+          />
+        </motion.div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
@@ -465,6 +508,20 @@ export default function FeedingPage() {
                             </option>
                           ))}
                         </select>
+                        <ExportButton
+                          data={filteredInventory.map(item => ({
+                            id: item.id,
+                            name: item.name,
+                            type: item.type,
+                            currentStock: item.currentStock,
+                            unit: item.unit,
+                            costPerKg: item.costPerKg,
+                            supplier: item.supplier,
+                            expiryDate: item.expiryDate
+                          }))}
+                          filename="feeding-inventory-export"
+                          title="Feeding Inventory"
+                        />
                       </div>
                     </div>
 
@@ -563,6 +620,20 @@ export default function FeedingPage() {
                         );
                       })}
                     </div>
+
+                    {/* Pagination for Inventory */}
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(totalRecords / recordsPerPage)}
+                      totalRecords={totalRecords}
+                      recordsPerPage={recordsPerPage}
+                      onPageChange={setCurrentPage}
+                      onRecordsPerPageChange={(limit) => {
+                        setRecordsPerPage(limit);
+                        setCurrentPage(1);
+                      }}
+                      isLoading={isLoading}
+                    />
                   </div>
                 )}
 

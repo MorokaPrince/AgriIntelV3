@@ -1,4 +1,59 @@
 import React from 'react';
+import Image from 'next/image';
+import { GradientCard } from './GradientCard';
+
+interface BackgroundImageCardProps {
+  title: string;
+  value: string | number;
+  backgroundImage: string;
+  tintColor?: 'emerald' | 'blue' | 'red' | 'green' | 'yellow' | 'purple';
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export function BackgroundImageCard({
+  title,
+  value,
+  backgroundImage,
+  tintColor = 'emerald',
+  className = '',
+  children
+}: BackgroundImageCardProps) {
+  const tintClasses = {
+    emerald: 'from-emerald-600/70 to-emerald-700/70',
+    blue: 'from-blue-600/70 to-blue-700/70',
+    red: 'from-red-600/70 to-red-700/70',
+    green: 'from-green-600/70 to-green-700/70',
+    yellow: 'from-yellow-600/70 to-yellow-700/70',
+    purple: 'from-purple-600/70 to-purple-700/70'
+  };
+
+  return (
+    <div className={`relative rounded-xl shadow-lg overflow-hidden group ${className}`}>
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src={backgroundImage}
+          alt={title}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
+        />
+      </div>
+
+      {/* Tint Overlay */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${tintClasses[tintColor]} backdrop-blur-sm`}></div>
+
+      {/* Content */}
+      <div className="relative z-10 p-6 text-white h-full flex flex-col justify-between">
+        <div>
+          <p className="text-sm font-medium text-white/90">{title}</p>
+          <p className="text-3xl font-bold mt-2">{value}</p>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface DashboardCardProps {
   title: string;
@@ -132,3 +187,5 @@ export function ResponsiveGrid({ children, className = '' }: ResponsiveGridProps
     </div>
   );
 }
+
+export { GradientCard };

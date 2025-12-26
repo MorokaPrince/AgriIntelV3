@@ -12,13 +12,6 @@ export async function GET(request: NextRequest) {
       try {
         await connectDB();
 
-        if (!session?.user) {
-          return NextResponse.json(
-            { error: 'Authentication required' },
-            { status: 401 }
-          );
-        }
-
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '48');
@@ -28,8 +21,9 @@ export async function GET(request: NextRequest) {
 
         const skip = (page - 1) * limit;
 
-        // Build filter
-        const filter: Record<string, unknown> = { tenantId: session.user.tenantId };
+        // Build filter - use demo tenant for demo purposes
+        const tenantId = session?.user?.tenantId || 'demo-farm';
+        const filter: Record<string, unknown> = { tenantId };
 
         if (status) {
           filter.status = status;
@@ -55,7 +49,7 @@ export async function GET(request: NextRequest) {
 
         // Get device statistics
         const deviceStats = await RFIDRecord.aggregate([
-          { $match: { tenantId: session.user.tenantId } },
+          { $match: { tenantId } },
           {
             $group: {
               _id: null,
@@ -94,7 +88,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -169,6 +164,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

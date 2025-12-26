@@ -3,14 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  PlusIcon,
   HeartIcon,
   ShieldCheckIcon,
   ClipboardDocumentListIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ClockIcon,
   UserIcon,
   MagnifyingGlassIcon,
   EyeIcon,
@@ -18,231 +15,308 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useHealthStore, HealthRecord } from '@/stores/health-store';
 import { useAuthStore } from '@/stores/auth-store';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { HealthTrendsChart } from '@/components/charts/HealthTrendsChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
-const healthStats = [
-  {
-    title: 'Total Records',
-    value: '247',
-    change: '+18%',
-    trend: 'up',
-    icon: ClipboardDocumentListIcon,
-    color: 'blue'
-  },
-  {
-    title: 'Active Treatments',
-    value: '12',
-    change: '-3',
-    trend: 'down',
-    icon: HeartIcon,
-    color: 'red'
-  },
-  {
-    title: 'Scheduled Visits',
-    value: '8',
-    change: '+2',
-    trend: 'up',
-    icon: CalendarIcon,
-    color: 'purple'
-  },
-  {
-    title: 'Health Score',
-    value: '94%',
-    change: '+2%',
-    trend: 'up',
-    icon: ShieldCheckIcon,
-    color: 'green'
-  }
-];
+// Simple type for our health records from MongoDB
+interface HealthRecord {
+  _id: string;
+  animalId: string;
+  animalTagId: string;
+  date: string;
+  type: 'vaccination' | 'treatment' | 'checkup' | 'surgery' | 'emergency' | 'quarantine';
+  veterinarian?: string;
+  diagnosis?: string;
+  treatment?: string;
+  medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: number;
+    instructions: string;
+  }>;
+  vaccinations?: Array<{
+    vaccine: string;
+    batchNumber: string;
+    manufacturer: string;
+    nextDueDate: string;
+    notes: string;
+  }>;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  status?: 'active' | 'resolved' | 'chronic' | 'monitoring';
+  cost?: number;
+  notes?: string;
+  followUp?: {
+    required: boolean;
+    date?: string;
+    instructions: string;
+  };
+}
 
-const upcomingAppointments = [
-  {
-    id: 1,
-    animalName: 'Bella',
-    animalId: 'RFID-001',
-    type: 'Vaccination',
-    date: '2024-01-20',
-    time: '10:00 AM',
-    veterinarian: 'Dr. Smith',
-    status: 'confirmed'
-  },
-  {
-    id: 2,
-    animalName: 'Max',
-    animalId: 'RFID-002',
-    type: 'Check-up',
-    date: '2024-01-22',
-    time: '2:00 PM',
-    veterinarian: 'Dr. Johnson',
-    status: 'pending'
-  },
-  {
-    id: 3,
-    animalName: 'Luna',
-    animalId: 'RFID-003',
-    type: 'Treatment',
-    date: '2024-01-25',
-    time: '11:30 AM',
-    veterinarian: 'Dr. Smith',
-    status: 'confirmed'
-  }
-];
+interface Animal {
+  _id: string;
+  rfidTag: string;
+  name?: string;
+  health?: {
+    overallCondition?: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  };
+}
 
-const recentAlerts = [
-  {
-    id: 1,
-    type: 'warning',
-    title: 'Vaccination Due',
-    description: 'Annual vaccination required for 5 animals',
-    time: '2 hours ago',
-    priority: 'high'
-  },
-  {
-    id: 2,
-    type: 'info',
-    title: 'Health Check Complete',
-    description: 'Routine check completed for Bella',
-    time: '4 hours ago',
-    priority: 'low'
-  },
-  {
-    id: 3,
-    type: 'error',
-    title: 'Treatment Required',
-    description: 'Luna showing signs of respiratory issues',
-    time: '1 day ago',
-    priority: 'high'
+const getHealthStats = (healthRecords: HealthRecord[], animals: Animal[]) => {
+  const totalRecords = healthRecords.length;
+  const activeRecords = healthRecords.filter(r => r.status === 'active').length;
+  const healthyAnimals = animals.filter(
+    a => a.health?.overallCondition === 'excellent' || a.health?.overallCondition === 'good'
+  ).length;
+  const healthScore = animals.length > 0 ? Math.round((healthyAnimals / animals.length) * 100) : 0;
+
+  return [
+    {
+      title: 'Total Records',
+      value: totalRecords.toString(),
+      change: '+18%',
+      trend: 'up',
+      icon: ClipboardDocumentListIcon,
+      color: 'blue'
+    },
+    {
+      title: 'Active Treatments',
+      value: activeRecords.toString(),
+      change: '-3',
+      trend: 'down',
+      icon: HeartIcon,
+      color: 'red'
+    },
+    {
+      title: 'Scheduled Visits',
+      value: healthRecords.filter(r => r.followUp?.required).length.toString(),
+      change: '+2',
+      trend: 'up',
+      icon: CalendarIcon,
+      color: 'purple'
+    },
+    {
+      title: 'Health Score',
+      value: `${healthScore}%`,
+      change: '+2%',
+      trend: 'up',
+      icon: ShieldCheckIcon,
+      color: 'green'
+    }
+  ];
+};
+
+const getUpcomingAppointments = (healthRecords: HealthRecord[]) => {
+  const now = new Date();
+  return healthRecords
+    .filter(r => r.followUp?.required && r.followUp.date && new Date(r.followUp.date) > now)
+    .sort((a, b) => new Date(a.followUp?.date || 0).getTime() - new Date(b.followUp?.date || 0).getTime())
+    .slice(0, 3)
+    .map((record, index) => ({
+      id: index + 1,
+      animalName: record.animalTagId || `Animal ${index + 1}`,
+      animalId: record.animalTagId || `RFID-${index + 1}`,
+      type: record.type ? record.type.charAt(0).toUpperCase() + record.type.slice(1) : 'Checkup',
+      date: record.followUp?.date ? new Date(record.followUp.date).toISOString().split('T')[0] : '',
+      time: record.followUp?.date ? new Date(record.followUp.date).toTimeString().split(' ')[0].substring(0, 5) : '',
+      veterinarian: record.veterinarian || 'Dr. Smith',
+      status: 'confirmed'
+    }));
+};
+
+const getHealthAlerts = (healthRecords: HealthRecord[]) => {
+  const now = new Date();
+
+  // Critical issues
+  const criticalIssues = healthRecords
+    .filter(r => r.severity === 'critical' && r.status === 'active')
+    .slice(0, 3)
+    .map((record, index) => ({
+      id: index + 1,
+      type: 'error',
+      title: 'Critical Health Issue',
+      description: `${record.diagnosis} - ${record.animalTagId}`,
+      time: 'urgent',
+      priority: 'high'
+    }));
+
+  // Overdue follow-ups
+  const overdueFollowUps = healthRecords
+    .filter(r => r.followUp?.required && r.followUp.date && new Date(r.followUp.date) < now && r.status !== 'resolved')
+    .slice(0, 3)
+    .map((record, index) => ({
+      id: criticalIssues.length + index + 1,
+      type: 'warning',
+      title: 'Follow-up Overdue',
+      description: `Follow-up needed for ${record.diagnosis} - ${record.animalTagId}`,
+      time: 'overdue',
+      priority: 'high'
+    }));
+
+  // Upcoming vaccinations
+  const upcomingVaccinations = healthRecords
+    .filter(r => r.vaccinations?.some(v => v.nextDueDate && new Date(v.nextDueDate) > now))
+    .slice(0, 3)
+    .map((record, index) => {
+      const nextVaccination = record.vaccinations
+        ?.filter(v => v.nextDueDate && new Date(v.nextDueDate) > now)
+        .sort((a, b) => new Date(a.nextDueDate || 0).getTime() - new Date(b.nextDueDate || 0).getTime())[0];
+
+      return {
+        id: criticalIssues.length + overdueFollowUps.length + index + 1,
+        type: 'info',
+        title: 'Vaccination Due',
+        description: `${nextVaccination?.vaccine} due for ${record.animalTagId}`,
+        time: nextVaccination?.nextDueDate ? new Date(nextVaccination.nextDueDate).toLocaleDateString() : '',
+        priority: 'medium'
+      };
+    });
+
+  return [...criticalIssues, ...overdueFollowUps, ...upcomingVaccinations].slice(0, 3);
+};
+
+const processHealthTrendsData = (healthRecords: HealthRecord[]) => {
+  if (!healthRecords || healthRecords.length === 0) {
+    return {
+      data: {
+        'Excellent': [85, 87, 89, 91, 92, 94, 95],
+        'Good': [10, 9, 8, 6, 5, 4, 3],
+        'Fair': [4, 3, 2, 2, 2, 1, 1],
+        'Poor': [1, 1, 1, 1, 1, 1, 1],
+      },
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7'],
+      title: 'Health Status Trends'
+    };
   }
-];
+
+  // Group records by week
+  const weeklyData: Record<string, { excellent: number; good: number; fair: number; poor: number }> = {};
+
+  // Get the most recent 7 weeks
+  const now = new Date();
+  const weeks = Array.from({ length: 7 }, (_, i) => {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - (now.getDay() + (6 - i) * 7));
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
+  });
+
+  // Initialize weekly data
+  weeks.forEach((weekStart, index) => {
+    const weekKey = `Week ${index + 1}`;
+    weeklyData[weekKey] = { excellent: 0, good: 0, fair: 0, poor: 0 };
+  });
+
+  // Process each health record
+  healthRecords.forEach(record => {
+    const recordDate = new Date(record.date);
+    const weekDiff = Math.floor((now.getTime() - recordDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+    if (weekDiff >= 0 && weekDiff < 7) {
+      const weekKey = `Week ${7 - weekDiff}`;
+      const severity = record.severity || 'low';
+
+      // Map severity to health categories
+      if (severity === 'low') {
+        weeklyData[weekKey].excellent += 1;
+      } else if (severity === 'medium') {
+        weeklyData[weekKey].good += 1;
+      } else if (severity === 'high') {
+        weeklyData[weekKey].fair += 1;
+      } else if (severity === 'critical') {
+        weeklyData[weekKey].poor += 1;
+      }
+    }
+  });
+
+  // Convert to chart format
+  const chartData: Record<string, number[]> = {
+    'Excellent': [],
+    'Good': [],
+    'Fair': [],
+    'Poor': []
+  };
+
+  const labels: string[] = [];
+
+  weeks.forEach((weekStart, index) => {
+    const weekKey = `Week ${index + 1}`;
+    labels.push(weekKey);
+
+    // Calculate percentages
+    const week = weeklyData[weekKey];
+    const total = week.excellent + week.good + week.fair + week.poor;
+
+    chartData['Excellent'].push(total > 0 ? Math.round((week.excellent / total) * 100) : 0);
+    chartData['Good'].push(total > 0 ? Math.round((week.good / total) * 100) : 0);
+    chartData['Fair'].push(total > 0 ? Math.round((week.fair / total) * 100) : 0);
+    chartData['Poor'].push(total > 0 ? Math.round((week.poor / total) * 100) : 0);
+  });
+
+  return {
+    data: chartData,
+    labels,
+    title: 'Health Status Trends'
+  };
+};
 
 export default function HealthPage() {
   const { user } = useAuthStore();
-  const { healthRecords, loading, setHealthRecords } = useHealthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Seed data
-    const seedHealthRecords: HealthRecord[] = [
-      {
-        _id: '1',
-        animalId: '1',
-        animalTagId: 'RFID-001',
-        date: new Date('2024-01-15'),
-        type: 'vaccination',
-        veterinarian: 'Dr. Smith',
-        diagnosis: 'Annual vaccination program',
-        treatment: 'Administered standard annual vaccines',
-        medications: [
-          {
-            name: 'Vaccine A',
-            dosage: '2ml',
-            frequency: 'Once',
-            duration: '1 day'
-          }
-        ],
-        cost: 450,
-        nextVisit: new Date('2024-07-15'),
-        notes: 'All vaccines administered successfully',
-        status: 'completed',
-        createdBy: user?._id || '1'
-      },
-      {
-        _id: '2',
-        animalId: '3',
-        animalTagId: 'RFID-003',
-        date: new Date('2024-01-13'),
-        type: 'treatment',
-        veterinarian: 'Dr. Johnson',
-        diagnosis: 'Respiratory infection',
-        treatment: 'Antibiotic treatment course',
-        medications: [
-          {
-            name: 'Antibiotic X',
-            dosage: '5ml',
-            frequency: 'Twice daily',
-            duration: '7 days'
-          },
-          {
-            name: 'Anti-inflammatory',
-            dosage: '3ml',
-            frequency: 'Once daily',
-            duration: '5 days'
-          }
-        ],
-        cost: 1200,
-        nextVisit: new Date('2024-01-20'),
-        notes: 'Patient responding well to treatment',
-        status: 'pending',
-        createdBy: user?._id || '1'
-      },
-      {
-        _id: '3',
-        animalId: '2',
-        animalTagId: 'RFID-002',
-        date: new Date('2024-01-14'),
-        type: 'checkup',
-        veterinarian: 'Dr. Smith',
-        diagnosis: 'Routine health examination',
-        treatment: 'General health check',
-        cost: 300,
-        notes: 'Excellent overall health condition',
-        status: 'completed',
-        createdBy: user?._id || '1'
-      },
-      {
-        _id: '4',
-        animalId: '4',
-        animalTagId: 'RFID-004',
-        date: new Date('2024-01-12'),
-        type: 'vaccination',
-        veterinarian: 'Dr. Johnson',
-        diagnosis: 'Booster vaccination',
-        treatment: 'Booster shots administered',
-        medications: [
-          {
-            name: 'Booster Vaccine',
-            dosage: '1ml',
-            frequency: 'Once',
-            duration: '1 day'
-          }
-        ],
-        cost: 250,
-        notes: 'All boosters current',
-        status: 'completed',
-        createdBy: user?._id || '1'
-      },
-      {
-        _id: '5',
-        animalId: '5',
-        animalTagId: 'RFID-005',
-        date: new Date('2024-01-10'),
-        type: 'checkup',
-        veterinarian: 'Dr. Smith',
-        diagnosis: 'Pre-milking health check',
-        treatment: 'Mastitis prevention measures',
-        cost: 400,
-        nextVisit: new Date('2024-02-10'),
-        notes: 'Good udder health, milk quality excellent',
-        status: 'completed',
-        createdBy: user?._id || '1'
-      }
-    ];
 
-    setHealthRecords(seedHealthRecords);
-  }, [setHealthRecords, user]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch health records from API with pagination
+        const healthResponse = await fetch(`/api/health?page=${currentPage}&limit=${recordsPerPage}`);
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json();
+          if (healthData.success && healthData.data) {
+            setHealthRecords(healthData.data);
+            if (healthData.pagination) {
+              setTotalRecords(healthData.pagination.total || 0);
+            }
+          }
+        }
+
+        // Fetch animals for health score calculation
+        const animalsResponse = await fetch('/api/animals?limit=100');
+        if (animalsResponse.ok) {
+          const animalsData = await animalsResponse.json();
+          if (animalsData.success && animalsData.data) {
+            setAnimals(animalsData.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentPage, recordsPerPage]);
 
   const filteredRecords = healthRecords.filter(record => {
-    const matchesSearch = record.animalTagId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (record.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-                         (record.veterinarian?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesSearch = (record.animalTagId?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+                         (record.diagnosis?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
+                         (record.veterinarian?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false);
     const matchesType = selectedType === 'all' || record.type === selectedType;
     const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
 
@@ -260,16 +334,18 @@ export default function HealthPage() {
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'cancelled', label: 'Cancelled' }
+    { value: 'active', label: 'Active' },
+    { value: 'resolved', label: 'Resolved' },
+    { value: 'chronic', label: 'Chronic' },
+    { value: 'monitoring', label: 'Monitoring' }
   ];
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'resolved': return 'bg-green-100 text-green-800';
+      case 'active': return 'bg-yellow-100 text-yellow-800';
+      case 'chronic': return 'bg-blue-100 text-blue-800';
+      case 'monitoring': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -294,6 +370,10 @@ export default function HealthPage() {
     }
   };
 
+  const upcomingAppointments = getUpcomingAppointments(healthRecords);
+  const recentAlerts = getHealthAlerts(healthRecords);
+  const { data: chartData, labels: chartLabels, title: chartTitle } = processHealthTrendsData(healthRecords);
+
   if (!mounted) {
     return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
   }
@@ -302,40 +382,54 @@ export default function HealthPage() {
     <DashboardLayout
       title="Health & Welfare"
       subtitle="Monitor animal health and manage veterinary care"
-      actions={
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <PlusIcon className="h-4 w-4" />
-          <span>Add Record</span>
-        </button>
-      }
+      className="page-header-consistent"
     >
       <div className="space-y-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {healthStats.map((stat, index) => (
+        {/* Consistent Stats Cards */}
+        <div className="grid-consistent-4">
+          {getHealthStats(healthRecords, animals).map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              className="metric-card-consistent"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className={`text-3xl font-bold text-${stat.color}-600`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${
+                  stat.color === 'blue' ? 'bg-blue-100' :
+                  stat.color === 'red' ? 'bg-red-100' :
+                  stat.color === 'green' ? 'bg-green-100' :
+                  stat.color === 'purple' ? 'bg-purple-100' : 'bg-gray-100'
+                }`}>
+                  <stat.icon className={`h-6 w-6 ${
+                    stat.color === 'blue' ? 'text-blue-600' :
+                    stat.color === 'red' ? 'text-red-600' :
+                    stat.color === 'green' ? 'text-green-600' :
+                    stat.color === 'purple' ? 'text-purple-600' : 'text-gray-600'
+                  }`} />
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <p className={`text-3xl font-bold ${
+                    stat.color === 'blue' ? 'text-blue-600' :
+                    stat.color === 'red' ? 'text-red-600' :
+                    stat.color === 'green' ? 'text-green-600' :
+                    stat.color === 'purple' ? 'text-purple-600' : 'text-gray-600'
+                  }`}>
                     {stat.value}
                   </p>
-                  <p className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change} from last month
-                  </p>
                 </div>
-                <div className={`p-3 bg-${stat.color}-100 rounded-lg`}>
-                  <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
-                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {stat.change} from last month
+                </span>
+                <span className={stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                  {stat.trend === 'up' ? '↗' : '↘'}
+                </span>
               </div>
             </motion.div>
           ))}
@@ -348,7 +442,7 @@ export default function HealthPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl shadow-sm border border-gray-200"
+              className="consistent-card"
             >
               {/* Filters */}
               <div className="p-6 border-b border-gray-200">
@@ -362,6 +456,7 @@ export default function HealthPage() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="Search health records"
                       />
                     </div>
                   </div>
@@ -370,6 +465,7 @@ export default function HealthPage() {
                       value={selectedType}
                       onChange={(e) => setSelectedType(e.target.value)}
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="Filter by type"
                     >
                       {typeOptions.map(option => (
                         <option key={option.value} value={option.value}>
@@ -381,6 +477,7 @@ export default function HealthPage() {
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="Filter by status"
                     >
                       {statusOptions.map(option => (
                         <option key={option.value} value={option.value}>
@@ -388,6 +485,19 @@ export default function HealthPage() {
                         </option>
                       ))}
                     </select>
+                    <ExportButton
+                      data={filteredRecords.map(r => ({
+                        id: r._id,
+                        diagnosis: r.diagnosis,
+                        type: r.type,
+                        status: r.status,
+                        date: r.date,
+                        veterinarian: r.veterinarian,
+                        notes: r.notes
+                      }))}
+                      filename="health-records-export"
+                      title="Health Records"
+                    />
                   </div>
                 </div>
               </div>
@@ -412,8 +522,8 @@ export default function HealthPage() {
                             </p>
                           </div>
                         </div>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(record.status)}`}>
-                          {record.status}
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(record.status || 'active')}`}>
+                          {record.status || 'active'}
                         </span>
                       </div>
 
@@ -486,17 +596,74 @@ export default function HealthPage() {
                   </div>
                 )}
               </div>
+
+              {/* Pagination */}
+              <div className="p-6 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1 || isLoading}
+                      className="px-3 py-1 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {Math.ceil(totalRecords / recordsPerPage)}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalRecords / recordsPerPage), prev + 1))}
+                      disabled={currentPage >= Math.ceil(totalRecords / recordsPerPage) || isLoading}
+                      className="px-3 py-1 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Records per page:</span>
+                    <select
+                      value={recordsPerPage}
+                      onChange={(e) => {
+                        setRecordsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      disabled={isLoading}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm"
+                      aria-label="Records per page"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Health Trends Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="consistent-card p-6"
+            >
+              <HealthTrendsChart
+                data={chartData}
+                labels={chartLabels}
+                title={chartTitle}
+              />
+            </motion.div>
+
             {/* Upcoming Appointments */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+              className="consistent-card p-6"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Appointments</h3>
               <div className="space-y-4">
@@ -528,7 +695,7 @@ export default function HealthPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+              className="consistent-card p-6"
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Health Alerts</h3>
               <div className="space-y-4">

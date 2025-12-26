@@ -92,6 +92,9 @@ export interface Animal {
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;
+  // Virtual properties
+  age?: number;
+  dateAdded?: Date;
 }
 
 interface AnimalState {
@@ -199,7 +202,6 @@ export const useAnimalStore = create<AnimalState>()(
       selectedAnimal: null,
       loading: false,
       error: null,
-
       setAnimals: (animals) => set({ animals }),
 
       addAnimal: (animal) =>

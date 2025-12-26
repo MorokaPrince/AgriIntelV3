@@ -16,6 +16,9 @@ import {
 } from '@heroicons/react/24/outline';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
+import Pagination from '@/components/common/Pagination';
+import { TasksStatusChart } from '@/components/charts/TasksStatusChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
 interface Task {
   _id: string;
@@ -84,10 +87,14 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'overdue'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchTasks = useCallback(async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       // For now, using mock data until we implement tasks API
       const mockTasks: Task[] = [
         {
@@ -261,6 +268,23 @@ export default function TasksPage() {
           </button>
         </div>
 
+        {/* Tasks Status Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <TasksStatusChart
+            data={{
+              'Completed': 24,
+              'In Progress': 12,
+              'Pending': 8,
+              'Overdue': 3,
+            }}
+            title="Task Status Distribution"
+          />
+        </motion.div>
+
         {/* Tasks Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {tasks.map((task, index) => (
@@ -389,6 +413,22 @@ export default function TasksPage() {
             </motion.div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {tasks.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalRecords / recordsPerPage)}
+            totalRecords={totalRecords}
+            recordsPerPage={recordsPerPage}
+            onPageChange={setCurrentPage}
+            onRecordsPerPageChange={(limit) => {
+              setRecordsPerPage(limit);
+              setCurrentPage(1);
+            }}
+            isLoading={isLoading}
+          />
+        )}
 
         {/* Empty State */}
         {tasks.length === 0 && !loading && (

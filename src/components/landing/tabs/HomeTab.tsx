@@ -62,54 +62,55 @@ export default function HomeTab() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Enhanced Background with Real Cattle Images */}
+      {/* Enhanced Agricultural Background with Farm Animals Hero Image */}
       <div className="absolute inset-0">
-        {/* Primary gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-emerald-800 to-green-900" />
+        {/* Primary agricultural gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-forest-green via-primary to-sage" />
 
-        {/* Multiple cattle background images */}
-        <div className="absolute inset-0 opacity-15">
+        {/* Farm Animals Hero Image - Primary Background */}
+        <div className="absolute inset-0 opacity-25">
+          <Image
+            src="/images/farm-animals-hero.jpg"
+            alt="Farm animals hero"
+            fill
+            className="object-cover"
+            priority
+            onError={(e) => {
+              console.warn('Failed to load farm animals hero image, using fallback');
+              (e.target as HTMLImageElement).src = '/images/animals/Cows 1.jpeg';
+            }}
+          />
+        </div>
+
+        {/* Multiple cattle background images for depth */}
+        <div className="absolute inset-0 opacity-10">
           <Image
             src="/images/animals/Cows 1.jpeg"
             alt="Cattle herd"
             fill
             className="object-cover"
-            priority
             onError={(e) => {
               console.warn('Failed to load Cows 1.jpeg, using fallback');
               (e.target as HTMLImageElement).src = '/images/animals/cows 2.avif';
             }}
           />
         </div>
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-8">
           <Image
             src="/images/animals/cows 2.avif"
             alt="Cattle grazing"
             fill
             className="object-cover"
-            priority
             onError={(e) => {
               console.warn('Failed to load cows 2.avif, using fallback');
               (e.target as HTMLImageElement).src = '/images/animals/cows 3.jpeg';
             }}
           />
         </div>
-        <div className="absolute inset-0 opacity-8">
-          <Image
-            src="/images/animals/cows 3.jpeg"
-            alt="Farm cattle"
-            fill
-            className="object-cover"
-            priority
-            onError={(e) => {
-              console.warn('Failed to load cows 3.jpeg, using fallback');
-              (e.target as HTMLImageElement).src = '/images/animals/cows 4.jpeg';
-            }}
-          />
-        </div>
 
-        {/* Overlay gradients for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        {/* Agricultural earth tone overlays for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-forest-green/80 via-transparent to-wheat/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-terracotta/30 via-transparent to-sage/30" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
@@ -120,25 +121,25 @@ export default function HomeTab() {
           className="text-center mb-16"
         >
           <motion.h1
-            className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white drop-shadow-2xl"
+            className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-wheat drop-shadow-2xl"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             Transform Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 drop-shadow-lg">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-wheat via-terracotta to-gold drop-shadow-lg">
               Livestock Empire
             </span>
           </motion.h1>
 
           <motion.p
-            className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto mb-8 leading-relaxed drop-shadow-lg"
+            className="text-xl md:text-2xl text-wheat/90 max-w-4xl mx-auto mb-8 leading-relaxed drop-shadow-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
             The most comprehensive livestock management system designed specifically for African farmers.
-            <span className="text-yellow-300 font-semibold"> Track, monitor, and optimize </span>
+            <span className="text-gold font-semibold"> Track, monitor, and optimize </span>
             your farm operations with cutting-edge technology.
           </motion.p>
 
@@ -154,7 +155,7 @@ export default function HomeTab() {
             >
               <Link
                 href="/auth/login"
-                className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white text-lg font-semibold rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 transform shadow-lg hover:shadow-orange-500/25 border border-orange-400/30"
+                className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-terracotta to-primary text-white text-lg font-semibold rounded-xl hover:from-terracotta/90 hover:to-primary/90 transition-all duration-300 transform shadow-lg hover:shadow-terracotta/25 border border-terracotta/30"
               >
                 <UserIcon className="mr-2 h-5 w-5" />
                 Login to Dashboard
@@ -190,9 +191,9 @@ export default function HomeTab() {
               whileHover={{ scale: 1.05 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-red-600/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              <div className="relative bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+              <div className="relative glassmorphism-wheat rounded-xl p-6 border border-wheat/20">
                 <motion.div
-                  className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2"
+                  className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-wheat to-terracotta mb-2"
                   animate={{
                     backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
                   }}
@@ -202,7 +203,7 @@ export default function HomeTab() {
                     ease: "linear",
                   }}
                   style={{
-                    background: 'linear-gradient(45deg, #fbbf24, #f59e0b, #d97706)',
+                    background: 'linear-gradient(45deg, #f5deb3, #cd853f, #daa520)',
                     backgroundSize: '200% 200%',
                     WebkitBackgroundClip: 'text',
                     backgroundClip: 'text',
@@ -211,7 +212,7 @@ export default function HomeTab() {
                 >
                   {stat.value}{stat.suffix}
                 </motion.div>
-                <div className="text-white/80 text-sm md:text-base font-medium">{stat.label}</div>
+                <div className="text-wheat/80 text-sm md:text-base font-medium">{stat.label}</div>
               </div>
             </motion.div>
           ))}
@@ -225,13 +226,13 @@ export default function HomeTab() {
           className="mb-16"
         >
           <motion.h2
-            className="text-3xl md:text-4xl font-bold text-center mb-12 text-white drop-shadow-lg"
+            className="text-3xl md:text-4xl font-bold text-center mb-12 text-wheat drop-shadow-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
             Everything You Need to Manage Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-wheat to-terracotta">
               Dream Farm
             </span>
           </motion.h2>
@@ -248,32 +249,32 @@ export default function HomeTab() {
                   rotateY: 5,
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-white/30 text-center overflow-hidden hover:shadow-2xl"
+                className="group relative glassmorphism-sage rounded-2xl p-8 shadow-xl border border-sage/30 text-center overflow-hidden hover:shadow-2xl"
               >
                 {/* Card background with subtle cattle image */}
-                <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0 opacity-8">
                   <Image
                     src={`/images/animals/cows ${((index % 4) + 1)}.jpeg`}
-                    alt="Cattle background"
+                    alt="Farm animals background"
                     fill
                     className="object-cover rounded-2xl"
                   />
                 </div>
 
-                {/* Icon with enhanced styling */}
+                {/* Icon with enhanced agricultural styling */}
                 <motion.div
-                  className="relative w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg"
+                  className="relative w-16 h-16 bg-gradient-to-br from-terracotta to-primary rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg"
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.6 }}
                 >
                   <feature.icon className="h-8 w-8 text-white" />
                 </motion.div>
 
-                <h3 className="text-2xl font-bold text-slate-900 mb-4 relative z-10">{feature.title}</h3>
-                <p className="text-slate-600 relative z-10 leading-relaxed">{feature.description}</p>
+                <h3 className="text-2xl font-bold text-forest-green mb-4 relative z-10">{feature.title}</h3>
+                <p className="text-forest-green/80 relative z-10 leading-relaxed">{feature.description}</p>
 
                 {/* Bottom accent line */}
-                <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600 w-0 group-hover:w-full transition-all duration-500" />
+                <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-terracotta to-primary w-0 group-hover:w-full transition-all duration-500" />
               </motion.div>
             ))}
           </div>
@@ -284,37 +285,37 @@ export default function HomeTab() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="relative bg-gradient-to-br from-white/20 via-green-500/10 to-emerald-500/10 backdrop-blur-md rounded-3xl p-12 border border-white/30 text-center overflow-hidden"
+          className="relative glassmorphism-forest rounded-3xl p-12 border border-forest-green/30 text-center overflow-hidden"
         >
-          {/* Background cattle image for CTA */}
-          <div className="absolute inset-0 opacity-10">
+          {/* Background farm animals image for CTA */}
+          <div className="absolute inset-0 opacity-15">
             <Image
               src="/images/animals/cows 4.jpeg"
-              alt="Cattle farm"
+              alt="Farm operations"
               fill
               className="object-cover rounded-3xl"
             />
           </div>
 
           <motion.h2
-            className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10 drop-shadow-lg"
+            className="text-3xl md:text-4xl font-bold text-wheat mb-4 relative z-10 drop-shadow-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9 }}
           >
             Ready to Transform Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-wheat to-terracotta">
               Agricultural Future?
             </span>
           </motion.h2>
 
           <motion.p
-            className="text-xl text-white/90 mb-8 max-w-2xl mx-auto relative z-10 drop-shadow-lg"
+            className="text-xl text-wheat/90 mb-8 max-w-2xl mx-auto relative z-10 drop-shadow-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.0 }}
           >
-            Join <span className="text-yellow-300 font-semibold">thousands</span> of African farmers who are already using AgriIntel to optimize their livestock operations.
+            Join <span className="text-gold font-semibold">thousands</span> of African farmers who are already using AgriIntel to optimize their livestock operations.
           </motion.p>
 
           <motion.div
@@ -329,7 +330,7 @@ export default function HomeTab() {
             >
               <Link
                 href="/"
-                className="group inline-flex items-center px-10 py-5 bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white text-xl font-bold rounded-2xl hover:from-green-700 hover:via-emerald-700 hover:to-green-700 transition-all duration-300 transform shadow-2xl hover:shadow-green-500/50 border-2 border-green-400/30"
+                className="group inline-flex items-center px-10 py-5 bg-gradient-to-r from-primary via-terracotta to-primary text-white text-xl font-bold rounded-2xl hover:from-primary/90 hover:via-terracotta/90 hover:to-primary/90 transition-all duration-300 transform shadow-2xl hover:shadow-terracotta/50 border-2 border-terracotta/30"
               >
                 Start Free Trial
                 <ArrowRightIcon className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
@@ -342,7 +343,7 @@ export default function HomeTab() {
             >
               <Link
                 href="#contact"
-                className="group inline-flex items-center px-10 py-5 border-2 border-white/40 text-white text-xl font-bold rounded-2xl hover:bg-white/10 hover:border-white/60 transition-all duration-300 backdrop-blur-sm"
+                className="group inline-flex items-center px-10 py-5 border-2 border-wheat/40 text-wheat text-xl font-bold rounded-2xl hover:bg-wheat/10 hover:border-wheat/60 transition-all duration-300 backdrop-blur-sm"
               >
                 Contact Sales
               </Link>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, Session } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { Session } from 'next-auth';
+import { auth } from '@/lib/auth';
 
 // Role hierarchy for permissions
 const ROLE_HIERARCHY = {
@@ -56,8 +56,8 @@ export function hasRoleHierarchy(userRole: string, requiredRole: UserRole): bool
 }
 
 export async function requireAuth(request: NextRequest): Promise<Session | NextResponse> {
-   try {
-     const session = await getServerSession(authOptions);
+    try {
+      const session = await auth();
 
      if (!session) {
        return NextResponse.json(

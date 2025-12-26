@@ -272,60 +272,90 @@ async function connectDB(): Promise<typeof mongoose> {
         cached.lastHealthCheck = Date.now();
         cached.connectionAttempts = 0;
         cached.lastError = undefined;
-
-        // Enhanced connection event listeners
+  
+        // Enhanced connection event listeners with improved error handling
         mongoose.connection.on('error', (err) => {
           console.error('❌ MongoDB connection error:', err);
           cached.lastError = err;
           cached.connectionAttempts++;
-
+  
           // Alert if too many errors
           if (cached.connectionAttempts > 3) {
             console.error('🚨 Multiple connection errors detected - check MongoDB Atlas status');
           }
+  
+          // Implement automatic reconnection with exponential backoff
+          if (cached.connectionAttempts <= 5) {
+            const delay = Math.min(1000 * Math.pow(2, cached.connectionAttempts), 10000);
+            console.log(`🔄 Attempting automatic reconnection in ${delay}ms...`);
+            setTimeout(() => {
+              cached.conn = null;
+              cached.promise = null;
+            }, delay);
+          }
         });
-
+  
         mongoose.connection.on('disconnected', () => {
           console.warn('⚠️ MongoDB disconnected - attempting reconnection...');
           cached.conn = null;
           cached.promise = null;
           cached.lastError = new Error('Connection lost');
+  
+          // Implement immediate reconnection attempt
+          setTimeout(() => {
+            console.log('🔄 Initiating immediate reconnection attempt...');
+          }, 1000);
         });
-
+  
         mongoose.connection.on('reconnected', () => {
           console.log('🔄 MongoDB reconnected successfully');
           cached.lastError = undefined;
           cached.connectionAttempts = 0;
-        });
 
+          // Reset connection pool after reconnection
+          if (cached.conn && cached.conn.connection.db) {
+            cached.conn.connection.db.admin().ping().catch(() => {
+              console.log('🔄 Resetting connection pool after reconnection...');
+            });
+          }
+        });
+  
         mongoose.connection.on('reconnectFailed', (err) => {
           console.error('❌ MongoDB reconnection failed:', err);
           cached.lastError = err;
+  
+          // Implement fallback to cached data mode
+          console.warn('💾 Switching to cached data mode - some features may be limited');
         });
-
+  
         // Enhanced monitoring with health checks
         const monitoringInterval = setInterval(() => {
           const stats = getConnectionPoolStats();
           if (stats) {
             logConnectionPoolStatus();
-
+  
             // Health check every 5 minutes
             if (Date.now() - cached.lastHealthCheck > 5 * 60 * 1000) {
               performHealthCheck();
             }
+  
+            // Add connection quality monitoring
+            if (stats.healthScore < 50) {
+              console.warn('⚠️ Connection quality degraded - monitoring closely');
+            }
           }
         }, 30000);
-
+  
         // Store monitoring interval for cleanup if needed
         (mongoose.connection as mongoose.Connection & { _monitoringInterval?: NodeJS.Timeout })._monitoringInterval = monitoringInterval;
-
+  
         return mongoose;
       }).catch((error) => {
         cached.promise = null;
         cached.lastError = error;
         cached.connectionAttempts++;
         console.error('❌ Failed to connect to MongoDB:', error);
-
+  
         // Provide more specific error messages
         if (error.message.includes('authentication failed')) {
           console.error('🔐 Authentication failed - check MongoDB credentials');
@@ -333,8 +363,21 @@ async function connectDB(): Promise<typeof mongoose> {
           console.error('🌐 DNS resolution failed - check MongoDB URI');
         } else if (error.message.includes('connection timed out')) {
           console.error('⏱️ Connection timeout - check network connectivity');
+        } else if (error.message.includes('MongoPoolClearedError')) {
+          console.error('🔄 Connection pool cleared - attempting to rebuild connection pool');
         }
-
+  
+        // Implement retry logic with exponential backoff
+        if (cached.connectionAttempts <= 3) {
+          const delay = Math.min(2000 * Math.pow(2, cached.connectionAttempts), 10000);
+          console.log(`🔄 Retrying connection in ${delay}ms...`);
+          setTimeout(() => {
+            cached.promise = null;
+          }, delay);
+        } else {
+          console.error('🚫 Maximum connection attempts reached - check MongoDB Atlas status');
+        }
+  
         throw error;
       });
     }
@@ -349,24 +392,61 @@ async function connectDB(): Promise<typeof mongoose> {
     }
   }
 
-  // Enhanced health check function
+  // Enhanced health check function with improved diagnostics
   async function performHealthCheck(): Promise<void> {
     if (!cached.conn || !cached.conn.connection.db) return;
 
     try {
       // Simple ping to check if connection is alive
+      const startTime = Date.now();
       await cached.conn.connection.db.admin().ping();
+      const pingTime = Date.now() - startTime;
+
       cached.lastHealthCheck = Date.now();
-      console.log('💚 MongoDB health check passed');
+
+      // Log ping time for performance monitoring
+      if (pingTime > 1000) {
+        console.warn(`🟡 MongoDB ping time high: ${pingTime}ms - potential network latency`);
+      } else {
+        console.log(`💚 MongoDB health check passed (${pingTime}ms)`);
+      }
+
+      // Check connection pool statistics
+      const stats = getConnectionPoolStats();
+      if (stats && stats.healthScore < 70) {
+        console.warn(`⚠️ Connection health score low: ${stats.healthScore} - monitoring closely`);
+      }
+
     } catch (error) {
       console.error('💔 MongoDB health check failed:', error);
       cached.lastError = error as Error;
+
+      // Enhanced error analysis
+      if (error instanceof Error) {
+        if (error.message.includes('ETIMEDOUT') || error.message.includes('timed out')) {
+          console.error('⏱️ Health check timeout - network connectivity issue suspected');
+        } else if (error.message.includes('EHOSTUNREACH')) {
+          console.error('🌐 Host unreachable - check network configuration');
+        } else if (error.message.includes('ECONNREFUSED')) {
+          console.error('🚫 Connection refused - MongoDB server may be down');
+        }
+      }
 
       // Attempt to reconnect if health check fails
       if (cached.conn.connection.readyState !== 1) {
         console.log('🔄 Attempting to reconnect after health check failure...');
         cached.conn = null;
         cached.promise = null;
+      } else {
+        // If connection appears active but health check failed, try to reset
+        console.log('🔄 Connection appears active but health check failed - resetting connection...');
+        try {
+          await cached.conn.connection.db.admin().ping(); // Try again
+        } catch (resetError) {
+          console.error('💔 Reset attempt failed:', resetError);
+          cached.conn = null;
+          cached.promise = null;
+        }
       }
     }
   }

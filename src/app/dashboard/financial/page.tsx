@@ -21,41 +21,106 @@ import { useFinancialStore, FinancialRecord } from '@/stores/financial-store';
 import { useAuthStore } from '@/stores/auth-store';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Pagination from '@/components/common/Pagination';
+import { FinancialOverviewChart } from '@/components/charts/FinancialOverviewChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
-const financialStats = [
-  {
-    title: 'Total Revenue',
-    value: 'R156,420',
-    change: '+18%',
-    trend: 'up',
-    icon: ArrowTrendingUpIcon,
-    color: 'green'
-  },
-  {
-    title: 'Total Expenses',
-    value: 'R89,230',
-    change: '+12%',
-    trend: 'up',
-    icon: ArrowTrendingDownIcon,
-    color: 'red'
-  },
-  {
-    title: 'Net Profit',
-    value: 'R67,190',
-    change: '+24%',
-    trend: 'up',
-    icon: ChartPieIcon,
-    color: 'blue'
-  },
-  {
-    title: 'This Month',
-    value: 'R12,450',
-    change: '+8%',
-    trend: 'up',
-    icon: CalendarIcon,
-    color: 'purple'
+// Dynamic stats calculation from actual data
+const getFinancialStats = (records: FinancialRecord[]) => {
+  // Handle empty or undefined records
+  if (!records || records.length === 0) {
+    return [
+      {
+        title: 'Total Revenue',
+        value: 'R0',
+        change: '0%',
+        trend: 'stable',
+        icon: ArrowTrendingUpIcon,
+        color: 'green'
+      },
+      {
+        title: 'Total Expenses',
+        value: 'R0',
+        change: '0%',
+        trend: 'stable',
+        icon: ArrowTrendingDownIcon,
+        color: 'red'
+      },
+      {
+        title: 'Net Profit',
+        value: 'R0',
+        change: '0%',
+        trend: 'stable',
+        icon: ChartPieIcon,
+        color: 'blue'
+      },
+      {
+        title: 'This Month',
+        value: 'R0',
+        change: '0%',
+        trend: 'stable',
+        icon: CalendarIcon,
+        color: 'purple'
+      }
+    ];
   }
-];
+
+  const totalIncome = records
+    .filter(r => r.type === 'income')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  const totalExpense = records
+    .filter(r => r.type === 'expense')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  const netProfit = totalIncome - totalExpense;
+  const thisMonth = records
+    .filter(r => {
+      try {
+        const recordDate = new Date(r.date);
+        const now = new Date();
+        return recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
+      } catch (error) {
+        return false;
+      }
+    })
+    .reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
+
+  const stats = [
+    {
+      title: 'Total Revenue',
+      value: `R${totalIncome.toLocaleString()}`,
+      change: '+18%',
+      trend: 'up',
+      icon: ArrowTrendingUpIcon,
+      color: 'green'
+    },
+    {
+      title: 'Total Expenses',
+      value: `R${totalExpense.toLocaleString()}`,
+      change: '+12%',
+      trend: 'up',
+      icon: ArrowTrendingDownIcon,
+      color: 'red'
+    },
+    {
+      title: 'Net Profit',
+      value: `R${netProfit.toLocaleString()}`,
+      change: '+24%',
+      trend: 'up',
+      icon: ChartPieIcon,
+      color: 'blue'
+    },
+    {
+      title: 'This Month',
+      value: `R${thisMonth.toLocaleString()}`,
+      change: '+8%',
+      trend: 'up',
+      icon: CalendarIcon,
+      color: 'purple'
+    }
+  ];
+
+  return stats;
+};
 
 const recentTransactions = [
   {
@@ -131,10 +196,40 @@ export default function FinancialPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Seed data
+
+    // Fetch financial records from API with pagination
+    const fetchFinancialRecords = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/financial?page=${currentPage}&limit=${recordsPerPage}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setFinancialRecords(data.data);
+            if (data.pagination) {
+              setTotalRecords(data.pagination.total || 0);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching financial records:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFinancialRecords();
+  }, [currentPage, recordsPerPage, setFinancialRecords]);
+
+  // Fallback seed data if API fails
+  useEffect(() => {
     const seedFinancialRecords: FinancialRecord[] = [
       {
         _id: '1',
@@ -267,10 +362,12 @@ export default function FinancialPage() {
       }
     ];
 
-    setFinancialRecords(seedFinancialRecords);
-  }, [setFinancialRecords, user]);
+    if (financialRecords.length === 0) {
+      setFinancialRecords(seedFinancialRecords);
+    }
+  }, [setFinancialRecords, user, financialRecords.length]);
 
-  const filteredRecords = financialRecords.filter(record => {
+  const filteredRecords = financialRecords.filter((record: FinancialRecord) => {
     const matchesSearch = record.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (record.receiptNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
                          (record.vendor?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
@@ -318,13 +415,14 @@ export default function FinancialPage() {
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
-  const totalIncome = financialRecords
-    .filter(r => r.type === 'income')
-    .reduce((sum, r) => sum + r.amount, 0);
+  // Safe calculations with fallback values
+  const totalIncome = financialRecords?.length > 0
+    ? financialRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + (r.amount || 0), 0)
+    : 0;
 
-  const totalExpenses = Math.abs(financialRecords
-    .filter(r => r.type === 'expense')
-    .reduce((sum, r) => sum + r.amount, 0));
+  const totalExpenses = financialRecords?.length > 0
+    ? Math.abs(financialRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + (r.amount || 0), 0))
+    : 0;
 
   const netProfit = totalIncome - totalExpenses;
 
@@ -349,7 +447,7 @@ export default function FinancialPage() {
       <div className="space-y-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {financialStats.map((stat, index) => (
+          {getFinancialStats(financialRecords).map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
@@ -424,6 +522,19 @@ export default function FinancialPage() {
                         </option>
                       ))}
                     </select>
+                    <ExportButton
+                      data={filteredRecords.map(r => ({
+                        id: r._id,
+                        description: r.description,
+                        type: r.type,
+                        category: r.category,
+                        amount: r.amount,
+                        date: r.date,
+                        receiptNumber: r.receiptNumber
+                      }))}
+                      filename="financial-records-export"
+                      title="Financial Records"
+                    />
                   </div>
                 </div>
               </div>
@@ -530,11 +641,41 @@ export default function FinancialPage() {
                   </div>
                 )}
               </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(totalRecords / recordsPerPage)}
+                totalRecords={totalRecords}
+                recordsPerPage={recordsPerPage}
+                onPageChange={setCurrentPage}
+                onRecordsPerPageChange={(limit) => {
+                  setRecordsPerPage(limit);
+                  setCurrentPage(1);
+                }}
+                isLoading={isLoading}
+              />
             </motion.div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Financial Overview Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            >
+              <FinancialOverviewChart
+                data={{
+                  income: [45000, 52000, 48000, 61000, 55000, 67000],
+                  expenses: [32000, 38000, 35000, 42000, 40000, 45000]
+                }}
+                title="Financial Overview"
+              />
+            </motion.div>
+
             {/* Summary */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}

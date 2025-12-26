@@ -194,31 +194,31 @@ export function useRealTimeData<T = unknown>({
 export function useDashboardData(tenantId: string) {
   const animals = useRealTimeData({
     endpoint: 'animals',
-    params: { limit: 100 },
+    params: { tenantId, limit: 100 },
     refreshInterval: 60000, // Reduced frequency to prevent rate limiting
   });
 
   const health = useRealTimeData({
     endpoint: 'health',
-    params: { limit: 100 },
+    params: { tenantId, limit: 100 },
     refreshInterval: 60000,
   });
 
   const financial = useRealTimeData({
     endpoint: 'financial',
-    params: { limit: 100 },
+    params: { tenantId, limit: 100 },
     refreshInterval: 120000, // Financial data updates less frequently
   });
 
   const feeding = useRealTimeData({
     endpoint: 'feeding',
-    params: { limit: 100 },
+    params: { tenantId, limit: 100 },
     refreshInterval: 60000,
   });
 
   const tasks = useRealTimeData({
     endpoint: 'tasks',
-    params: { limit: 100 },
+    params: { tenantId, limit: 100 },
     refreshInterval: 30000, // Tasks update more frequently but less often
   });
 

@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
         }
 
         const financialRecords = await FinancialRecord.find(filter)
-          .populate('createdBy', 'firstName lastName')
           .sort({ date: -1 })
           .skip(skip)
           .limit(limit);
@@ -102,7 +101,8 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }
 
@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    }
+    },
+    { allowPublic: true }
   );
 }

@@ -10,6 +10,9 @@ export interface IUser extends Document {
   lastName: string;
   phone: string;
   role: 'admin' | 'manager' | 'veterinarian' | 'worker' | 'viewer';
+  tier: 'beta' | 'professional' | 'enterprise';
+  trialStartDate?: Date;
+  trialEndDate?: Date;
   country: string;
   region: string;
   farmName: string;
@@ -74,6 +77,20 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ['admin', 'manager', 'veterinarian', 'worker', 'viewer'],
       default: 'viewer',
+    },
+    tier: {
+      type: String,
+      enum: ['beta', 'professional', 'enterprise'],
+      default: 'beta',
+      index: true,
+    },
+    trialStartDate: {
+      type: Date,
+      default: Date.now,
+    },
+    trialEndDate: {
+      type: Date,
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     },
     country: {
       type: String,
@@ -148,13 +165,11 @@ UserSchema.index({ tenantId: 1, lastLogin: -1 }); // For recent activity queries
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function (next) {
-  const user = this as IUser;
-
-  if (!user.isModified('password')) return next();
+  if (!(this as IUser).isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);
-    user.password = await bcrypt.hash(user.password, salt);
+    (this as IUser).password = await bcrypt.hash((this as IUser).password, salt);
     next();
   } catch (error) {
     next(error as Error);
@@ -176,4 +191,4 @@ UserSchema.statics.findActiveByTenant = function (tenantId: string) {
   return this.find({ tenantId, isActive: true });
 };
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+export default mongoose.models?.User || mongoose.model<IUser>('User', UserSchema);

@@ -26,6 +26,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import Modal from '@/components/ui/Modal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Pagination from '@/components/common/Pagination';
+import { RFIDStatusChart } from '@/components/charts/RFIDStatusChart';
+import { ExportButton } from '@/components/common/ExportButton';
 
 const rfidStats = [
   {
@@ -350,10 +353,34 @@ export default function RFIDPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('tags');
   const [mounted, setMounted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Fetch RFID records from API with pagination
+    const fetchRFIDRecords = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/rfid?page=${currentPage}&limit=${recordsPerPage}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.pagination) {
+            setTotalRecords(data.pagination.total || 0);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching RFID records:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRFIDRecords();
+  }, [currentPage, recordsPerPage]);
 
   const filteredTags = rfidTags.filter(tag => {
     const matchesSearch = tag.animalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -454,6 +481,23 @@ export default function RFIDPage() {
           ))}
         </div>
 
+        {/* RFID Status Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <RFIDStatusChart
+            data={{
+              'Active': 42,
+              'Inactive': 5,
+              'Low Battery': 3,
+              'Maintenance': 2,
+            }}
+            title="RFID Device Status"
+          />
+        </motion.div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
@@ -519,6 +563,21 @@ export default function RFIDPage() {
                             </option>
                           ))}
                         </select>
+                        <ExportButton
+                          data={filteredTags.map(tag => ({
+                            id: tag.id,
+                            animalName: tag.animalName,
+                            animalId: tag.animalId,
+                            species: tag.species,
+                            breed: tag.breed,
+                            status: tag.status,
+                            batteryLevel: tag.batteryLevel,
+                            signalStrength: tag.signalStrength,
+                            lastScan: tag.lastScan
+                          }))}
+                          filename="rfid-tags-export"
+                          title="RFID Tags"
+                        />
                       </div>
                     </div>
 
@@ -615,6 +674,20 @@ export default function RFIDPage() {
                         </motion.div>
                       ))}
                     </div>
+
+                    {/* Pagination for Tags */}
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(totalRecords / recordsPerPage)}
+                      totalRecords={totalRecords}
+                      recordsPerPage={recordsPerPage}
+                      onPageChange={setCurrentPage}
+                      onRecordsPerPageChange={(limit) => {
+                        setRecordsPerPage(limit);
+                        setCurrentPage(1);
+                      }}
+                      isLoading={isLoading}
+                    />
                   </div>
                 )}
 

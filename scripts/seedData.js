@@ -67,12 +67,12 @@ async function seedUsers(db) {
   const users = [
     {
       tenantId: 'demo-farm',
-      email: 'admin@demo.com',
-      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj', // password123
-      firstName: 'John',
-      lastName: 'Admin',
-      phone: '+1234567890',
-      role: 'admin',
+      email: 'demo@agriintel.co.za',
+      password: '$2b$12$GawOWgDK/SUvDOzjoDveVebrntuesV.yktAet02EsTmNAq8aF.BLK', // Demo123!
+      firstName: 'Demo',
+      lastName: 'User',
+      phone: '+27 11 123 4567',
+      role: 'viewer',
       country: 'ZA',
       region: 'Gauteng',
       farmName: 'Demo Farm',
@@ -90,22 +90,22 @@ async function seedUsers(db) {
           push: true,
         },
       },
-      permissions: ['all'],
+      permissions: ['animals:read', 'health:read'],
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
       tenantId: 'demo-farm',
-      email: 'manager@demo.com',
-      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj', // password123
-      firstName: 'Jane',
-      lastName: 'Manager',
-      phone: '+1234567891',
+      email: 'pro@agriintel.co.za',
+      password: '$2b$12$n6DefdVIZb35hcsDZBT6PODVbm863AVTldshKXDquqER5JBzmlQ3.', // Pro123!
+      firstName: 'Pro',
+      lastName: 'User',
+      phone: '+27 11 234 5678',
       role: 'manager',
       country: 'ZA',
       region: 'Gauteng',
-      farmName: 'Demo Farm',
-      farmSize: 100,
+      farmName: 'Professional Farm',
+      farmSize: 500,
       livestockTypes: ['cattle', 'sheep'],
       isActive: true,
       preferences: {
@@ -122,6 +122,35 @@ async function seedUsers(db) {
       permissions: ['animals:read', 'animals:write', 'health:read', 'health:write'],
       createdAt: new Date(),
       updatedAt: new Date(),
+    },
+    {
+      tenantId: 'demo-farm',
+      email: 'admin@agriintel.co.za',
+      password: '$2b$12$BpHSD3uzJJPT0hes7w4QhutDudF6Mkh0ac3f0MCJBrLezTkr5C7gm', // Admin123!
+      firstName: 'Admin',
+      lastName: 'User',
+      phone: '+27 11 345 6789',
+      role: 'admin',
+      country: 'ZA',
+      region: 'Gauteng',
+      farmName: 'Enterprise Farm',
+      farmSize: 1000,
+      livestockTypes: ['cattle', 'sheep', 'goats', 'pigs'],
+      isActive: true,
+      preferences: {
+        language: 'en',
+        currency: 'ZAR',
+        timezone: 'Africa/Johannesburg',
+        theme: 'auto',
+        notifications: {
+          email: true,
+          sms: true,
+          push: true,
+        },
+      },
+      permissions: ['all'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
   ];
 
@@ -133,131 +162,99 @@ async function seedUsers(db) {
 async function seedAnimals(db) {
   console.log('\n🐄 Seeding animals...');
 
-  const animals = [
-    {
-      tenantId: 'demo-farm',
-      rfidTag: 'RFID001',
-      name: 'Bella',
-      species: 'cattle',
-      breed: 'Angus',
-      dateOfBirth: new Date('2020-03-15'),
-      gender: 'female',
-      color: 'Black',
-      weight: 450,
-      height: 140,
-      status: 'active',
-      location: {
-        latitude: -26.2041,
-        longitude: 28.0473,
-        address: 'Farm Section A',
-        farmSection: 'Section A',
-      },
-      health: {
-        overallCondition: 'excellent',
-        lastCheckup: new Date(),
-        nextCheckup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        vaccinations: [
-          {
-            vaccine: 'Brucellosis',
-            date: new Date('2024-01-15'),
-            nextDue: new Date('2025-01-15'),
-            veterinarian: 'Dr. Smith',
-          },
-        ],
-        diseases: [],
-      },
-      breeding: {
-        isBreedingStock: true,
-        fertilityStatus: 'fertile',
-        lastBreedingDate: new Date('2023-11-01'),
-        expectedCalvingDate: new Date('2024-08-01'),
-        offspring: [],
-      },
-      nutrition: {
-        dailyFeedIntake: 12,
-        feedType: 'Grass Hay',
-        supplements: ['Mineral Mix', 'Protein Supplement'],
-        feedingSchedule: 'Twice daily',
-      },
-      productivity: {
-        milkProduction: 25,
-        weightGain: 1.2,
-        lastMeasurement: new Date(),
-      },
-      images: [
-        {
-          url: '/images/modules/animals/cattle-1.jpeg',
-          caption: 'Bella - Main photo',
-          uploadedAt: new Date(),
-        },
-      ],
-      notes: 'Excellent breeding cow, good temperament',
-      createdBy: 'demo-user',
-      updatedBy: 'demo-user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      tenantId: 'demo-farm',
-      rfidTag: 'RFID002',
-      name: 'Max',
-      species: 'cattle',
-      breed: 'Hereford',
-      dateOfBirth: new Date('2019-08-20'),
-      gender: 'male',
-      color: 'Red and White',
-      weight: 680,
-      height: 150,
-      status: 'breeding',
-      location: {
-        latitude: -26.2041,
-        longitude: 28.0473,
-        address: 'Farm Section B',
-        farmSection: 'Section B',
-      },
-      health: {
-        overallCondition: 'good',
-        lastCheckup: new Date(),
-        nextCheckup: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
-        vaccinations: [
-          {
-            vaccine: 'IBR/BVD',
-            date: new Date('2024-02-01'),
-            nextDue: new Date('2025-02-01'),
-            veterinarian: 'Dr. Smith',
-          },
-        ],
-        diseases: [],
-      },
-      breeding: {
-        isBreedingStock: true,
-        fertilityStatus: 'fertile',
-        offspring: [],
-      },
-      nutrition: {
-        dailyFeedIntake: 15,
-        feedType: 'Alfalfa Hay',
-        supplements: ['Mineral Mix'],
-        feedingSchedule: 'Three times daily',
-      },
-      productivity: {
-        weightGain: 1.5,
-        lastMeasurement: new Date(),
-      },
-      images: [
-        {
-          url: '/images/animals/cattle-2.avif',
-          caption: 'Max - Breeding bull',
-          uploadedAt: new Date(),
-        },
-      ],
-      notes: 'Prime breeding bull, excellent genetics',
-      createdBy: 'demo-user',
-      updatedBy: 'demo-user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  const animals = [];
+  const species = ['cattle', 'sheep', 'goats'];
+  const speciesCounts = { cattle: 20, sheep: 16, goats: 12 };
+  const cattleNames = ['Bella', 'Daisy', 'Luna', 'Molly', 'Ruby', 'Stella', 'Willow', 'Aurora', 'Coco', 'Honey', 'Jasmine', 'Lily', 'Milo', 'Oliver', 'Max', 'Charlie', 'Buddy', 'Rocky', 'Jack', 'Duke'];
+  const sheepNames = ['Fluffy', 'Cotton', 'Snowball', 'Marshmallow', 'Cloud', 'Pearl', 'Ivory', 'Blanca', 'Frost', 'Crystal', 'Wooly', 'Fleece', 'Baabaa', 'Lambchop', 'Shep', 'Rambo'];
+  const goatNames = ['Billy', 'Nanny', 'Kiko', 'Boer', 'Alpine', 'Saanen', 'Toggenburg', 'Nubian', 'Lamancha', 'Oberhasli', 'Pepper', 'Ginger'];
+
+  let globalIndex = 1;
+
+  for (const [speciesName, count] of Object.entries(speciesCounts)) {
+    console.log(`  Generating ${count} ${speciesName}...`);
+
+    let names;
+    switch (speciesName) {
+      case 'cattle': names = cattleNames; break;
+      case 'sheep': names = sheepNames; break;
+      case 'goats': names = goatNames; break;
+      default: names = cattleNames;
     }
-  ];
+
+    for (let i = 0; i < count; i++) {
+      const age = Math.floor(Math.random() * 8) + 1;
+      const birthDate = new Date(Date.now() - age * 365 * 24 * 60 * 60 * 1000);
+      const gender = Math.random() > 0.5 ? 'male' : 'female';
+
+      const breeds = {
+        cattle: ['Angus', 'Hereford', 'Charolais', 'Simmental', 'Limousin'],
+        sheep: ['Merino', 'Dorper', 'Suffolk', 'Hampshire'],
+        goats: ['Boer', 'Kiko', 'Spanish', 'Myotonic']
+      };
+
+      const colors = {
+        cattle: ['Black', 'Red', 'White', 'Brown', 'Spotted'],
+        sheep: ['White', 'Black', 'Brown', 'Grey'],
+        goats: ['White', 'Black', 'Brown', 'Grey']
+      };
+
+      const animal = {
+        tenantId: 'demo-farm',
+        rfidTag: `RFID${String(100000 + globalIndex).padStart(6, '0')}`,
+        name: names[i % names.length] + (i >= names.length ? ` ${Math.floor(i / names.length) + 1}` : ''),
+        species: speciesName,
+        breed: breeds[speciesName][Math.floor(Math.random() * breeds[speciesName].length)],
+        dateOfBirth: birthDate,
+        gender,
+        color: colors[speciesName][Math.floor(Math.random() * colors[speciesName].length)],
+        weight: speciesName === 'cattle' ? 400 + Math.floor(Math.random() * 400) : speciesName === 'sheep' ? 50 + Math.floor(Math.random() * 70) : 40 + Math.floor(Math.random() * 60),
+        height: speciesName === 'cattle' ? 120 + Math.floor(Math.random() * 40) : speciesName === 'sheep' ? 60 + Math.floor(Math.random() * 20) : 50 + Math.floor(Math.random() * 30),
+        status: Math.random() > 0.9 ? 'breeding' : 'active',
+        location: {
+          latitude: -26.2041 + (Math.random() * 0.1 - 0.05),
+          longitude: 28.0473 + (Math.random() * 0.1 - 0.05),
+          address: `${Math.floor(Math.random() * 9999) + 1} Farm Road, Gauteng, South Africa`,
+          farmSection: ['Main Barn', 'North Pasture', 'South Field', 'East Pen', 'West Corral'][Math.floor(Math.random() * 5)]
+        },
+        health: {
+          overallCondition: ['excellent', 'good', 'fair'][Math.floor(Math.random() * 3)],
+          lastCheckup: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000),
+          nextCheckup: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+          vaccinations: [],
+          diseases: []
+        },
+        breeding: {
+          isBreedingStock: gender === 'female' && age >= 2,
+          fertilityStatus: ['fertile', 'subfertile'][Math.floor(Math.random() * 2)],
+          lastBreedingDate: gender === 'female' && Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 200 * 24 * 60 * 60 * 1000) : undefined,
+          expectedCalvingDate: gender === 'female' && Math.random() > 0.7 ? new Date(Date.now() + Math.random() * 100 * 24 * 60 * 60 * 1000) : undefined,
+          offspring: []
+        },
+        nutrition: {
+          dailyFeedIntake: 5 + Math.floor(Math.random() * 15),
+          feedType: ['Grass Hay', 'Alfalfa', 'Mixed Grains', 'Silage'][Math.floor(Math.random() * 4)],
+          supplements: ['Mineral Block', 'Salt Lick'].filter(() => Math.random() > 0.5),
+          feedingSchedule: 'Twice daily'
+        },
+        productivity: {
+          milkProduction: speciesName === 'cattle' && gender === 'female' ? Math.floor(Math.random() * 30) + 10 : undefined,
+          weightGain: 0.5 + Math.random() * 2,
+          lastMeasurement: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+        },
+        images: [],
+        notes: `Healthy ${speciesName} in ${['Main Barn', 'North Pasture', 'South Field'][Math.floor(Math.random() * 3)]} section.`,
+        alerts: [],
+        createdBy: 'demo-user',
+        updatedBy: 'demo-user',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      animals.push(animal);
+      globalIndex++;
+    }
+  }
 
   const result = await db.collection('animals').insertMany(animals);
   console.log(`  ✓ Created ${result.insertedCount} animals`);
@@ -327,6 +324,7 @@ async function seedFinancialRecords(db) {
       date: new Date('2024-01-15'),
       paymentMethod: 'bank_transfer',
       vendor: 'Local Butcher',
+      reference: `INV-${Math.floor(Math.random() * 1000000)}`,
       createdBy: 'demo-user',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -341,6 +339,7 @@ async function seedFinancialRecords(db) {
       date: new Date('2024-01-01'),
       paymentMethod: 'bank_transfer',
       vendor: 'Farm Feeds Ltd',
+      reference: `EXP-${Math.floor(Math.random() * 1000000)}`,
       createdBy: 'demo-user',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -705,8 +704,7 @@ async function displayDataSummary(db) {
 
 
 // Run seeding if called directly
-if (require.main === module) {
-  seedDatabase();
-}
-
-module.exports = { seedDatabase };
+seedDatabase().catch(error => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
