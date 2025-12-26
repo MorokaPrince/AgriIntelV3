@@ -28,7 +28,6 @@
     "db:verify": "node scripts/verify-seeding.js",
     "test:connection": "node connection-performance-test.mjs",
     "prebuild": "npm run lint",
-    "prepare": "npm run prebuild",
     "clean": "rm -rf .next out node_modules/.cache"
   },
   "dependencies": {
