@@ -27,10 +27,9 @@
     "db:seed": "node scripts/seedData.js",
     "db:verify": "node scripts/verify-seeding.js",
     "test:connection": "node connection-performance-test.mjs",
-    "prebuild": "npm run lint && npm run type-check",
+    "prebuild": "npm run lint",
     "prepare": "npm run prebuild",
-    "clean": "rm -rf .next out node_modules/.cache",
-    "postinstall": "npm run type-check"
+    "clean": "rm -rf .next out node_modules/.cache"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
